@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: streamlit
-        image: quay.io/jeslynlamxy/starquery-app:latest
+        image: quay.io/jeslynlamxy/streamlit-app:latest
         ports:
           - containerPort: 8501
         resources:

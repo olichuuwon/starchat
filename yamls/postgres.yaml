@@ -30,7 +30,7 @@ spec:
         fsGroup: 1000950000  
       containers:
       - name: postgres
-        image: quay.io/jeslynlamxy/postgres-populated:latest
+        image: quay.io/jeslynlamxy/postgres-logging:latest
         ports:
         - containerPort: 5432
         env:
