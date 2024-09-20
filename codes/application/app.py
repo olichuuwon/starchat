@@ -3,29 +3,39 @@ app.py
 """
 
 import os
+import jwt
 import json
+import uuid
+import warnings
 import requests
 from datetime import datetime, timedelta
-import jwt
-from sqlalchemy import Column, Boolean, Text, Integer, TIMESTAMP
+
+import streamlit as st
+
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Integer,
+    Boolean,
+    Text,
+    TIMESTAMP,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
-import uuid
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy import Column, Integer, String, DateTime, Text
-import streamlit as st
+from sqlalchemy.orm import sessionmaker
+
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.llms import Ollama
 from langchain_community.utilities import SQLDatabase
-import warnings
+
 from urllib3.exceptions import InsecureRequestWarning
 
 # Suppress only the InsecureRequestWarning
 warnings.simplefilter("ignore", InsecureRequestWarning)
+
 CLIENT_ID = "flask_client"
 CLIENT_SECRET = "fxAtVg6qe1eh78V4NurL3SeSNm2v8tUD"
 KEYCLOAK_URL = "https://keycloak.nebula.sl"
