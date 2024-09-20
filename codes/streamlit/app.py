@@ -73,6 +73,10 @@ def add_log_login(is_successful, username=None, token=None, error_message=None):
     session = logging_session()
 
     try:
+        # Convert token to JSON string if it's a dictionary
+        if isinstance(token, dict):
+            token = json.dumps(token)
+
         new_log = LogLogin(
             is_successful=is_successful,
             username=username,
