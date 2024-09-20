@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model
+  namespace: starchat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: model
+  template:
+    metadata:
+      labels:
+        app: model
+    spec:
+      containers:
+      - name: model
+        image: quay.io/jeslynlamxy/ollama-llama-8b:latest
+        ports:
+          - containerPort: 11434
+        resources:
+          limits:
+            nvidia.com/gpu: 1  # Request 1 GPU
+            cpu: "8"
+            memory: "20Gi"
+          requests:
+            nvidia.com/gpu: 1  # Request 1 GPU
+            cpu: "4"
+            memory: "10Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: model
+  namespace: starchat
+spec:
+  selector:
+    app: model
+  ports:
+    - protocol: TCP
+      port: 11434
+      targetPort: 11434

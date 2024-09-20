@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: starchat
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: starchat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      securityContext:
+        runAsUser: 1000950000    # Specify a non-root user if needed
+        fsGroup: 1000950000  
+      containers:
+      - name: postgres
+        image: quay.io/jeslynlamxy/postgres-populated:latest
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "user"
+        - name: POSTGRES_PASSWORD
+          value: "pass"
+        - name: POSTGRES_DB
+          value: "chinook"
+        resources:
+          requests:
+            # memory: "256Mi"
+            # cpu: "250m"
+            ephemeral-storage: "1Gi"  # Request for ephemeral storage
+          limits:
+            # memory: "512Mi"
+            # cpu: "9000m"
+            ephemeral-storage: "10Gi"  # Request for ephemeral storage
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgres-storage
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: starchat
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
