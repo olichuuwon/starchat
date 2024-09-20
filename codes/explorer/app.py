@@ -1,6 +1,7 @@
 import streamlit as st
 from sqlalchemy import create_engine, inspect
 import pandas as pd
+import uuid
 
 st.set_page_config(page_title="Explorer", page_icon=":eyes:", layout="wide")
 st.title("🔎 Logs Explorer")
@@ -21,11 +22,15 @@ def get_table_names(engine):
     return tables
 
 
-# Function to fetch all data from a specific table
+# Modify your function that fetches table data to include the conversion
 def get_table_data(engine, table_name):
     query = f"SELECT * FROM {table_name};"
     with engine.connect() as connection:
         result = pd.read_sql(query, connection)
+
+    # Convert UUID columns to string
+    result = convert_uuid_columns_to_string(result)
+
     return result
 
 
@@ -36,6 +41,16 @@ def get_all_tables_data(engine, table_names):
         table_data = get_table_data(engine, table_name)
         tables_data[table_name] = table_data
     return tables_data
+
+
+def convert_uuid_columns_to_string(df):
+    """
+    Converts columns containing UUIDs to string format to make DataFrame Arrow-compatible.
+    """
+    for col in df.columns:
+        if df[col].dtype == "object" and isinstance(df[col].iloc[0], uuid.UUID):
+            df[col] = df[col].astype(str)
+    return df
 
 
 # Create a database engine
