@@ -21,11 +21,9 @@ spec:
         resources:
           limits:
             nvidia.com/gpu: 1  # Request 1 GPU
-            cpu: "8"
             memory: "20Gi"
           requests:
             nvidia.com/gpu: 1  # Request 1 GPU
-            cpu: "4"
             memory: "10Gi"
 ---
 apiVersion: v1
