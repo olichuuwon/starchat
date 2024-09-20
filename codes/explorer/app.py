@@ -52,7 +52,7 @@ if table_names:
     )
 
     if view_mode == "View a specific table":
-        selected_table = st.selectbox("Select a table to view", table_names)
+        selected_table = st.radio("Select a table to view", table_names)
 
         if selected_table:
             st.write(f"Data from `{selected_table}` table:")
