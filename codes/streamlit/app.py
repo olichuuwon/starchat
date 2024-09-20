@@ -7,24 +7,128 @@ import json
 import requests
 
 import jwt
-
+from sqlalchemy import Column, Boolean, Text, Integer, TIMESTAMP
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.declarative import declarative_base
+import uuid
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy import Column, Integer, String, DateTime, Text
 import streamlit as st
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.llms import Ollama
-
+from langchain_community.utilities import SQLDatabase
 
 CLIENT_ID = "flask_client"
 CLIENT_SECRET = "fxAtVg6qe1eh78V4NurL3SeSNm2v8tUD"
 KEYCLOAK_URL = "https://keycloak.nebula.sl"
 REALM = "text2sql"
-REDIRECT_URI = "https://streamlit-route-starquery1.apps.nebula.sl"
+REDIRECT_URI = "https://streamlit-route-starchat.apps.nebula.sl"
 
 # Load model configurations from environment variables
 MODEL_NAME = os.getenv("MODEL_NAME", "llama3:instruct")
 MODEL_BASE_URL = os.getenv("MODEL_BASE_URL", "http://model:11434")
+
+LOGGING_URL = f"postgresql+psycopg2://user:pass@postgres:5432/logging"
+logging_engine = create_engine(LOGGING_URL)
+logging_session = sessionmaker(bind=logging_engine)
+base = declarative_base()
+
+
+class LogLogin(base):
+    __tablename__ = "log_logins"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    is_successful = Column(Boolean, nullable=False)
+    username = Column(Text, nullable=True)  # NULL allowed
+    token = Column(Text, nullable=True)  # NULL allowed
+    error_message = Column(Text, nullable=True)  # NULL allowed
+    created_at = Column(TIMESTAMP, nullable=False, server_default="CURRENT_TIMESTAMP")
+
+
+class LogLLMInputsOutputs(base):
+    __tablename__ = "log_llm_inputs_outputs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    username = Column(Text, nullable=True)  # NULL allowed
+    input = Column(Text, nullable=True)  # NULL allowed
+    output = Column(Text, nullable=True)  # NULL allowed
+    created_at = Column(TIMESTAMP, nullable=False, server_default="CURRENT_TIMESTAMP")
+
+
+class UserFeedback(base):
+    __tablename__ = "user_feedbacks"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    username = Column(Text, nullable=True)  # NULL allowed
+    scale = Column(Integer, nullable=False)
+    feedback = Column(Text, nullable=False)
+    created_at = Column(TIMESTAMP, nullable=False, server_default="CURRENT_TIMESTAMP")
+
+
+def add_log_login(is_successful, username=None, token=None, error_message=None):
+    session = logging_session()
+
+    try:
+        new_log = LogLogin(
+            is_successful=is_successful,
+            username=username,
+            token=token,
+            error_message=error_message,
+        )
+
+        session.add(new_log)
+        session.commit()
+        print("LogLogin record added successfully.")
+
+    except Exception as e:
+        print(f"Error occurred while adding LogLogin: {e}")
+        session.rollback()
+
+    finally:
+        session.close()
+
+
+def add_llm_input_output(username, input_data=None, output_data=None):
+    session = logging_session()
+
+    try:
+        new_entry = LogLLMInputsOutputs(
+            username=username, input=input_data, output=output_data
+        )
+
+        session.add(new_entry)
+        session.commit()
+        print("LogLLMInputsOutputs record added successfully.")
+
+    except Exception as e:
+        print(f"Error occurred while adding LogLLMInputsOutputs: {e}")
+        session.rollback()
+
+    finally:
+        session.close()
+
+
+def add_user_feedback(username, scale, feedback):
+    session = logging_session()
+
+    try:
+        new_feedback = UserFeedback(username=username, scale=scale, feedback=feedback)
+
+        session.add(new_feedback)
+        session.commit()
+        print("UserFeedback record added successfully.")
+
+    except Exception as e:
+        print(f"Error occurred while adding UserFeedback: {e}")
+        session.rollback()
+
+    finally:
+        session.close()
+
 
 st.set_page_config(page_title="Starchat", page_icon=":speech_balloon:", layout="wide")
 
@@ -121,10 +225,22 @@ def authenticate():
         decoded_token = get_decoded_token(access_token, public_key)
         if decoded_token is None:
             return None
+
+        st.success(decoded_token["preferred_username"])
         st.success(decoded_token)
 
+        add_log_login(
+            True,
+            decoded_token["preferred_username"],
+            token=decoded_token,
+        )
         return decoded_token
     except Exception as e:
+
+        add_log_login(
+            False,
+            error_message=e,
+        )
 
         st.error(f"authenticate: {e}")
         return None

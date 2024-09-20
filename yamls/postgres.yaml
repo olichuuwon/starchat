@@ -26,8 +26,8 @@ spec:
         app: postgres
     spec:
       securityContext:
-        runAsUser: 1000950000    # Specify a non-root user if needed
-        fsGroup: 1000950000  
+        runAsUser: 1000970000    # Updated to a valid user ID
+        fsGroup: 1000970000      # Updated to a valid group ID
       containers:
       - name: postgres
         image: quay.io/jeslynlamxy/postgres-logging:latest
@@ -42,13 +42,9 @@ spec:
           value: "chinook"
         resources:
           requests:
-            # memory: "256Mi"
-            # cpu: "250m"
             ephemeral-storage: "1Gi"  # Request for ephemeral storage
           limits:
-            # memory: "512Mi"
-            # cpu: "9000m"
-            ephemeral-storage: "10Gi"  # Request for ephemeral storage
+            ephemeral-storage: "10Gi"  # Limit for ephemeral storage
         volumeMounts:
         - mountPath: /var/lib/postgresql/data
           name: postgres-storage
