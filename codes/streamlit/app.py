@@ -5,7 +5,7 @@ app.py
 import os
 import json
 import requests
-
+from datetime import datetime, timedelta
 import jwt
 from sqlalchemy import Column, Boolean, Text, Integer, TIMESTAMP
 from sqlalchemy.dialects.postgresql import UUID
@@ -21,7 +21,11 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.llms import Ollama
 from langchain_community.utilities import SQLDatabase
+import warnings
+from urllib3.exceptions import InsecureRequestWarning
 
+# Suppress only the InsecureRequestWarning
+warnings.simplefilter("ignore", InsecureRequestWarning)
 CLIENT_ID = "flask_client"
 CLIENT_SECRET = "fxAtVg6qe1eh78V4NurL3SeSNm2v8tUD"
 KEYCLOAK_URL = "https://keycloak.nebula.sl"
@@ -38,6 +42,11 @@ logging_session = sessionmaker(bind=logging_engine)
 base = declarative_base()
 
 
+# Function to get current time in GMT+8
+def get_gmt_plus_8_time():
+    return datetime.now() + timedelta(hours=8)
+
+
 class LogLogin(base):
     __tablename__ = "log_logins"
 
@@ -46,7 +55,9 @@ class LogLogin(base):
     username = Column(Text, nullable=True)  # NULL allowed
     token = Column(Text, nullable=True)  # NULL allowed
     error_message = Column(Text, nullable=True)  # NULL allowed
-    created_at = Column(TIMESTAMP, nullable=False, server_default="CURRENT_TIMESTAMP")
+    created_at = Column(
+        TIMESTAMP, nullable=False, default=get_gmt_plus_8_time
+    )  # Use datetime
 
 
 class LogLLMInputsOutputs(base):
@@ -56,7 +67,9 @@ class LogLLMInputsOutputs(base):
     username = Column(Text, nullable=True)  # NULL allowed
     input = Column(Text, nullable=True)  # NULL allowed
     output = Column(Text, nullable=True)  # NULL allowed
-    created_at = Column(TIMESTAMP, nullable=False, server_default="CURRENT_TIMESTAMP")
+    created_at = Column(
+        TIMESTAMP, nullable=False, default=get_gmt_plus_8_time
+    )  # Use datetime
 
 
 class UserFeedback(base):
@@ -66,7 +79,20 @@ class UserFeedback(base):
     username = Column(Text, nullable=True)  # NULL allowed
     scale = Column(Integer, nullable=False)
     feedback = Column(Text, nullable=False)
-    created_at = Column(TIMESTAMP, nullable=False, server_default="CURRENT_TIMESTAMP")
+    created_at = Column(
+        TIMESTAMP, nullable=False, default=get_gmt_plus_8_time
+    )  # Use datetime
+
+
+class UserSuggestion(base):
+    __tablename__ = "user_sugguestions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    username = Column(Text, nullable=True)  # NULL allowed
+    suggestion = Column(Text, nullable=False)
+    created_at = Column(
+        TIMESTAMP, nullable=False, default=get_gmt_plus_8_time
+    )  # Use datetime
 
 
 def add_log_login(is_successful, username=None, token=None, error_message=None):
@@ -133,6 +159,26 @@ def add_user_feedback(username, scale, feedback):
     finally:
         session.close()
 
+
+def add_user_suggestion(username, suggestion):
+    session = logging_session()
+
+    try:
+        new_suggestion = UserSuggestion(username=username, suggestion=suggestion)
+
+        session.add(new_suggestion)
+        session.commit()
+        print("UserFeedback record added successfully.")
+
+    except Exception as e:
+        print(f"Error occurred while adding UserFeedback: {e}")
+        session.rollback()
+
+    finally:
+        session.close()
+
+
+base.metadata.create_all(logging_engine)
 
 st.set_page_config(page_title="Starchat", page_icon=":speech_balloon:", layout="wide")
 
@@ -229,10 +275,6 @@ def authenticate():
         decoded_token = get_decoded_token(access_token, public_key)
         if decoded_token is None:
             return None
-
-        st.success(decoded_token["preferred_username"])
-        st.success(decoded_token)
-
         add_log_login(
             True,
             decoded_token["preferred_username"],
@@ -240,12 +282,10 @@ def authenticate():
         )
         return decoded_token
     except Exception as e:
-
         add_log_login(
             False,
             error_message=e,
         )
-
         st.error(f"authenticate: {e}")
         return None
 
@@ -318,6 +358,11 @@ def chat_mode_function():
             )
         # Append the AI's response to the chat history
         st.session_state.chat_history.append(AIMessage(content=response))
+        add_llm_input_output(
+            st.session_state.jwt_token["preferred_username"],
+            input_data=user_query,
+            output_data=response,
+        )
 
 
 def database_mode_function():
@@ -326,6 +371,49 @@ def database_mode_function():
     """
     st.title("🐘 Database Mode")
     st.write("Under construction...")
+    if st.button("Submit Suggestion"):
+        suggestion_form()  # Open the feedback form dialog
+
+
+# Feedback dialog function
+@st.dialog("Suggestion Form")
+def suggestion_form():
+    st.write("Please share your suggestions: ")
+    suggestion = st.text_area(
+        "What questions would you ask the database, and could you share how would you use the data that was accessed?",
+        max_chars=500,
+    )
+
+    if st.button("Submit"):
+        if suggestion:  # Ensure feedback is not empty
+            add_user_suggestion(
+                st.session_state.jwt_token["preferred_username"], suggestion
+            )
+            st.success("Thank you for your sugguestions!")
+        else:
+            st.error("Please provide your suggestions before submitting.")
+
+
+# Feedback dialog function
+@st.dialog("Feedback Form")
+def feedback_form():
+    st.write("Please provide your feedback below:")
+    scale = st.slider(
+        "How would you rate this application? (1 - very unsatisfied, 10 - very satisfied)",
+        1,
+        10,
+        5,
+    )
+    feedback = st.text_area("Let us know why:", max_chars=500)
+
+    if st.button("Submit"):
+        if feedback:  # Ensure feedback is not empty
+            add_user_feedback(
+                st.session_state.jwt_token["preferred_username"], scale, feedback
+            )
+            st.success("Thank you for your feedback!")
+        else:
+            st.error("Please provide your feedback before submitting.")
 
 
 def main():
@@ -341,7 +429,7 @@ def main():
 
     if st.session_state.jwt_token:
         st.sidebar.title("🌠 Starchat")
-
+        # Main app logic
         modes = ["Chat Mode", "Database Mode"]
         if "page_selected" not in st.session_state:
             st.session_state.page_selected = modes[0]
@@ -352,6 +440,10 @@ def main():
             chat_mode_function()
         elif selected_mode == "Database Mode":
             database_mode_function()
+
+        with st.sidebar:
+            if st.button("Submit Feedback"):
+                feedback_form()  # Open the feedback form dialog
 
 
 if __name__ == "__main__":
