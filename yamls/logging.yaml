@@ -51,7 +51,7 @@ spec:
       volumes:
         - name: logging-storage
           persistentVolumeClaim:
-            claimName: postgres-pvc
+            claimName: logging-pvc
 ---
 apiVersion: v1
 kind: Service

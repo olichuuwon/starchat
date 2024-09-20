@@ -30,7 +30,7 @@ CLIENT_ID = "flask_client"
 CLIENT_SECRET = "fxAtVg6qe1eh78V4NurL3SeSNm2v8tUD"
 KEYCLOAK_URL = "https://keycloak.nebula.sl"
 REALM = "text2sql"
-REDIRECT_URI = "https://streamlit-route-starchat.apps.nebula.sl"
+REDIRECT_URI = "https://application-route-starchat.apps.nebula.sl"
 
 # Load model configurations from environment variables
 MODEL_NAME = os.getenv("MODEL_NAME", "llama3:instruct")
