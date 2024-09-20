@@ -36,7 +36,7 @@ REDIRECT_URI = "https://streamlit-route-starchat.apps.nebula.sl"
 MODEL_NAME = os.getenv("MODEL_NAME", "llama3:instruct")
 MODEL_BASE_URL = os.getenv("MODEL_BASE_URL", "http://model:11434")
 
-LOGGING_URL = f"postgresql+psycopg2://user:pass@postgres:5432/logging"
+LOGGING_URL = f"postgresql+psycopg2://user:pass@logging:5432/logging"
 logging_engine = create_engine(LOGGING_URL)
 logging_session = sessionmaker(bind=logging_engine)
 base = declarative_base()

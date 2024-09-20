@@ -10,7 +10,7 @@ st.title("🔎 Logs Explorer")
 # Database connection setup using SQLAlchemy
 def get_db_connection():
     # Update with your own connection string
-    db_url = f"postgresql+psycopg2://user:pass@postgres:5432/logging"
+    db_url = f"postgresql+psycopg2://user:pass@logging:5432/logging"
     engine = create_engine(db_url)
     return engine
 
