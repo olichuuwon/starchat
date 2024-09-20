@@ -2,7 +2,7 @@ import streamlit as st
 from sqlalchemy import create_engine, inspect
 import pandas as pd
 
-st.set_page_config(page_title="Explorer", page_icon=":conditions:", layout="wide")
+st.set_page_config(page_title="Explorer", page_icon=":eyes:", layout="wide")
 st.title("🔎 Logs Explorer")
 
 
