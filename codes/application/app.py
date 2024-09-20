@@ -370,7 +370,7 @@ def database_mode_function():
     database mode function
     """
     st.title("🐘 Database Mode")
-    st.write("Under construction...")
+    st.write("Coming soon...")
     if st.button("Submit Suggestion"):
         suggestion_form()  # Open the feedback form dialog
 

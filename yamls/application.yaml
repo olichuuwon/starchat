@@ -1,39 +1,39 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: streamlit
+  name: application
   namespace: starchat
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: streamlit
+      app: application
   template:
     metadata:
       labels:
-        app: streamlit
+        app: application
     spec:
       containers:
-      - name: streamlit
-        image: quay.io/jeslynlamxy/streamlit-app:latest
-        ports:
-          - containerPort: 8501
-        resources:
-          limits:
-            cpu: "2"
-            memory: "2Gi"
-          requests:
-            cpu: "1"
-            memory: "1Gi"
+        - name: application
+          image: quay.io/jeslynlamxy/starchat-app:latest
+          ports:
+            - containerPort: 8501
+          resources:
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+            requests:
+              cpu: "1"
+              memory: "1Gi"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: streamlit
+  name: application
   namespace: starchat
 spec:
   selector:
-    app: streamlit
+    app: application
   ports:
     - protocol: TCP
       port: 8501
@@ -42,12 +42,12 @@ spec:
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: streamlit-route
+  name: application-route
   namespace: starchat
 spec:
   to:
     kind: Service
-    name: streamlit
+    name: application
   port:
     targetPort: 8501
   tls:
