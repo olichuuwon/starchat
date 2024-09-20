@@ -14,7 +14,7 @@ RUN mkdir -p $OLLAMA_MODELS && \
     chmod -R g=u $OLLAMA_MODELS
 
 # Pre-Install model
-RUN ollama serve & sleep 5 && ollama run llama3:instruct && ollama run sqlcoder
+RUN ollama serve & sleep 5 && ollama run llama3:instruct
 
 # Ensure the /.ollama directory exists and copy id_ed25519 file
 RUN mkdir -p /.ollama && \

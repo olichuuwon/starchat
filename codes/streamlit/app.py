@@ -121,8 +121,11 @@ def authenticate():
         decoded_token = get_decoded_token(access_token, public_key)
         if decoded_token is None:
             return None
+        st.success(decoded_token)
+
         return decoded_token
     except Exception as e:
+
         st.error(f"authenticate: {e}")
         return None
 
