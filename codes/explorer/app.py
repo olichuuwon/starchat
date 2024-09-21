@@ -48,8 +48,11 @@ def convert_uuid_columns_to_string(df):
     Converts columns containing UUIDs to string format to make DataFrame Arrow-compatible.
     """
     for col in df.columns:
-        if df[col].dtype == "object" and isinstance(df[col].iloc[0], uuid.UUID):
-            df[col] = df[col].astype(str)
+        # Check if the column is not empty
+        if df[col].dtype == "object" and len(df[col]) > 0:
+            # Only check the first element if the column is not empty
+            if isinstance(df[col].iloc[0], uuid.UUID):
+                df[col] = df[col].astype(str)
     return df
 
 
