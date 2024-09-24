@@ -339,7 +339,7 @@ def chat_mode_function():
     # Initialize chat history in session state if not already done
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = [
-            AIMessage(content="Hello, I am a bot. How can I help you?"),
+            AIMessage(content="Hello, I am a helpful assistant. How can I help you?"),
         ]
 
     # Display chat history
@@ -390,7 +390,7 @@ def database_mode_function():
 def suggestion_form():
     st.write("Please share your suggestions: ")
     suggestion = st.text_area(
-        "What questions would you ask the database, and could you share how would you use the data that was accessed?",
+        "How can large language models (LLMs) assist you in your daily tasks or improve your work experience? Share any specific use cases or challenges you'd like us to address!",
         max_chars=500,
     )
 
@@ -409,8 +409,8 @@ def suggestion_form():
 def feedback_form():
     st.write("Please provide your feedback below:")
     scale = st.slider(
-        "How would you rate this application? (1 - very unsatisfied, 10 - very satisfied)",
-        1,
+        "How would you rate this application? (0 - very unsatisfied, 10 - very satisfied)",
+        0,
         10,
         5,
     )
