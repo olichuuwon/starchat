@@ -1,0 +1,100 @@
+# Deployment template for both applications
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.application.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.application.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.application.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.application.name }}
+    spec:
+      containers:
+        - name: {{ .Values.application.name }}
+          image: "{{ .Values.application.image.repository }}:{{ .Values.application.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.application.ports.containerPort }}
+          resources:
+            limits:
+              cpu: "{{ .Values.resources.limits.cpu }}"
+              memory: "{{ .Values.resources.limits.memory }}"
+            requests:
+              cpu: "{{ .Values.resources.requests.cpu }}"
+              memory: "{{ .Values.resources.requests.memory }}"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.explorer.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.explorer.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.explorer.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.explorer.name }}
+    spec:
+      containers:
+        - name: {{ .Values.explorer.name }}
+          image: "{{ .Values.explorer.image.repository }}:{{ .Values.explorer.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.explorer.ports.containerPort }}
+          resources:
+            limits:
+              cpu: "{{ .Values.resources.limits.cpu }}"
+              memory: "{{ .Values.resources.limits.memory }}"
+            requests:
+              cpu: "{{ .Values.resources.requests.cpu }}"
+              memory: "{{ .Values.resources.requests.memory }}"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.logging.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.logging.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.logging.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.logging.name }}
+    spec:
+      securityContext:
+        runAsUser: {{ .Values.logging.securityContext.runAsUser }}
+        fsGroup: {{ .Values.logging.securityContext.fsGroup }}
+      containers:
+        - name: {{ .Values.logging.name }}
+          image: "{{ .Values.logging.image.repository }}:{{ .Values.logging.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.logging.ports.containerPort }}
+          env:
+            - name: POSTGRES_USER
+              value: "{{ .Values.logging.env.postgresUser }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.logging.env.postgresPassword }}"
+            - name: POSTGRES_DB
+              value: "{{ .Values.logging.env.postgresDb }}"
+          resources:
+            requests:
+              ephemeral-storage: "{{ .Values.logging.storage.request }}"
+            limits:
+              ephemeral-storage: "{{ .Values.logging.storage.limit }}"
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: logging-storage
+      volumes:
+        - name: logging-storage
+          persistentVolumeClaim:
+            claimName: logging-pvc
+---
