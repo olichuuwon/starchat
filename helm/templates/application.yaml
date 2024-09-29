@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: application
+  namespace: starchat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: application
+  template:
+    metadata:
+      labels:
+        app: application
+    spec:
+      containers:
+        - name: application
+          image: quay.io/jeslynlamxy/starchat-app:latest
+          ports:
+            - containerPort: 8501
+          resources:
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+            requests:
+              cpu: "1"
+              memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: application
+  namespace: starchat
+spec:
+  selector:
+    app: application
+  ports:
+    - protocol: TCP
+      port: 8501
+      targetPort: 8501
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: application-route
+  namespace: starchat
+spec:
+  to:
+    kind: Service
+    name: application
+  port:
+    targetPort: 8501
+  tls:
+    termination: edge
+  wildcardPolicy: None
