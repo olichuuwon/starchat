@@ -2,15 +2,21 @@ import streamlit as st
 from sqlalchemy import create_engine, inspect
 import pandas as pd
 import uuid
+import os
 
 st.set_page_config(page_title="Explorer", page_icon=":eyes:", layout="wide")
 st.title("🔎 Logs Explorer")
+
+# Load logging URL from environment variables
+LOGGING_URL = os.getenv(
+    "LOGGING_URL", "postgresql+psycopg2://user:pass@logging:5432/logging"
+)
 
 
 # Database connection setup using SQLAlchemy
 def get_db_connection():
     # Update with your own connection string
-    db_url = f"postgresql+psycopg2://user:pass@logging:5432/logging"
+    db_url = LOGGING_URL
     engine = create_engine(db_url)
     return engine
 

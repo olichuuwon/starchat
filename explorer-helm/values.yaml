@@ -17,7 +17,7 @@ explorer:
     tlsTermination: edge
     wildcardPolicy: None
   env:
-    lol: test
+    LOGGING_URL: postgresql+psycopg2://user:pass@logging:5432/logging
 
 # Container resource settings (shared across applications)
 resources:

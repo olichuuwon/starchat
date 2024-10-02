@@ -13,7 +13,17 @@ application:
   ports:
     containerPort: 8501 # Application's container port
   env:
-    lol: test
+    CLIENT_ID: flask_client
+    CLIENT_SECRET: fxAtVg6qe1eh78V4NurL3SeSNm2v8tUD
+    KEYCLOAK_URL: https://keycloak.nebula.sl
+    REALM: text2sql
+    REDIRECT_URI: https://application-route-starchat.apps.babasaur.sl
+    OLLAMA_MODEL_NAME: llama3:instruct
+    VLLM_MODEL_NAME: Llama-3.1-8B-Instruct-AWQ
+    OLLAMA_MODEL_BASE_URL: http://model:11434
+    VLLM_MODEL_BASE_URL: https://llama-8b-route-sy-vllm.apps.nebula.sl/v2/models
+    LLM_PROVIDER: vllm
+    LOGGING_URL: postgresql+psycopg2://user:pass@logging:5432/logging
 
 # Container resource settings (shared across applications)
 resources:

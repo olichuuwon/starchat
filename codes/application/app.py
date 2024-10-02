@@ -28,7 +28,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
-from langchain_community.llms import Ollama
+from langchain_community.llms import Ollama, VLLM
 from langchain_community.utilities import SQLDatabase
 
 from urllib3.exceptions import InsecureRequestWarning
@@ -36,17 +36,31 @@ from urllib3.exceptions import InsecureRequestWarning
 # Suppress only the InsecureRequestWarning
 warnings.simplefilter("ignore", InsecureRequestWarning)
 
-CLIENT_ID = "flask_client"
-CLIENT_SECRET = "fxAtVg6qe1eh78V4NurL3SeSNm2v8tUD"
-KEYCLOAK_URL = "https://keycloak.nebula.sl"
-REALM = "text2sql"
-REDIRECT_URI = "https://application-route-starchat.apps.nebula.sl"
+# Load configurations from environment variables with default fallback values
+CLIENT_ID = os.getenv("CLIENT_ID", "flask_client")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET", "fxAtVg6qe1eh78V4NurL3SeSNm2v8tUD")
+KEYCLOAK_URL = os.getenv("KEYCLOAK_URL", "https://keycloak.nebula.sl")
+REALM = os.getenv("REALM", "text2sql")
+REDIRECT_URI = os.getenv(
+    "REDIRECT_URI", "https://application-route-starchat.apps.nebula.sl"
+)
 
 # Load model configurations from environment variables
-MODEL_NAME = os.getenv("MODEL_NAME", "llama3:instruct")
-MODEL_BASE_URL = os.getenv("MODEL_BASE_URL", "http://model:11434")
+OLLAMA_MODEL_NAME = os.getenv("OLLAMA_MODEL_NAME", "llama3:instruct")
+VLLM_MODEL_NAME = os.getenv("VLLM_MODEL_NAME", "Llama-3.1-8B-Instruct")
 
-LOGGING_URL = f"postgresql+psycopg2://user:pass@logging:5432/logging"
+OLLAMA_MODEL_BASE_URL = os.getenv("OLLAMA_MODEL_BASE_URL", "http://model:11434")
+VLLM_MODEL_BASE_URL = os.getenv(
+    "VLLM_MODEL_BASE_URL", "https://llama-8b-route-sy-vllm.apps.nebula.sl/v2/models"
+)
+
+# Determine LLM provider (ollama or vllm)
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama").lower()  # Default to "ollama"
+
+# Load logging URL from environment variables
+LOGGING_URL = os.getenv(
+    "LOGGING_URL", "postgresql+psycopg2://user:pass@logging:5432/logging"
+)
 logging_engine = create_engine(LOGGING_URL)
 logging_session = sessionmaker(bind=logging_engine)
 base = declarative_base()
@@ -316,7 +330,18 @@ def get_chat_response(user_query, chat_history):
     prompt = ChatPromptTemplate.from_template(template)
 
     # Initialize the language model with the specified model name and base URL
-    llm = Ollama(model=MODEL_NAME, base_url=MODEL_BASE_URL, verbose=True)
+
+    # Conditionally import the required library
+    if LLM_PROVIDER == "ollama":
+        # Initialize Ollama model
+        llm = Ollama(
+            model=OLLAMA_MODEL_NAME, base_url=OLLAMA_MODEL_BASE_URL, verbose=True
+        )
+    elif LLM_PROVIDER == "vllm":
+        # Initialize VLLM model
+        llm = VLLM(model=VLLM_MODEL_NAME, base_url=VLLM_MODEL_BASE_URL, verbose=True)
+    else:
+        raise ValueError(f"Unsupported LLM provider: {LLM_PROVIDER}")
 
     # Create a chain that processes the prompt and parses the output
     chain = prompt | llm | StrOutputParser()
