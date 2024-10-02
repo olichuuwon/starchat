@@ -21,7 +21,7 @@ logging:
     limit: "10Gi"
     persistentVolumeClaim:
       storageRequest: 20Gi
-      storageClassName: standard
+      storageClassName: crc-csi-hostpath-provisioner
       accessModes:
         - ReadWriteOnce
       hostPath: /mnt/data/logging-pv
