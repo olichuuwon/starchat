@@ -1,7 +1,7 @@
-{
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter",
-        "editor.formatOnSave": true
-    },
-    "editor.formatOnSave": true, // Automatically format on save
-}
+// {
+//     "[python]": {
+//         "editor.defaultFormatter": "ms-python.black-formatter",
+//         "editor.formatOnSave": true
+//     },
+//     "editor.formatOnSave": true, // Automatically format on save
+// }

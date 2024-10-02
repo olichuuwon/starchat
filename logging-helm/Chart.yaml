@@ -1,6 +1,6 @@
 apiVersion: v2
-name: helm
-description: A Helm chart for Starchat
+name: logging-helm
+description: A Helm chart for Logging
 type: application
 version: 0.1.0
 appVersion: "1.16.0"

@@ -1,0 +1,31 @@
+# values.yaml
+
+# Namespace for the resources
+namespace: starchat
+
+# Application settings for "application"
+application:
+  name: application
+  image:
+    repository: quay.io/jeslynlamxy/starchat-app
+    tag: latest
+  replicas: 1
+  ports:
+    containerPort: 8501 # Application's container port
+  env:
+    lol: test
+
+# Container resource settings (shared across applications)
+resources:
+  requests:
+    cpu: "0.5"
+    memory: "1Gi"
+  limits:
+    cpu: "1"
+    memory: "2Gi"
+
+# Route settings for "application" (OpenShift)
+routeApplication:
+  name: application-route
+  tlsTermination: edge
+  wildcardPolicy: None

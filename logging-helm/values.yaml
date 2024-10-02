@@ -1,0 +1,36 @@
+# values.yaml
+
+# Namespace for the resources
+namespace: starchat
+
+# Application settings for "logging"
+logging:
+  name: logging
+  image:
+    repository: quay.io/jeslynlamxy/postgres-logging
+    tag: latest
+  replicas: 1
+  ports:
+    containerPort: 5432 # Logging application's container port
+  env:
+    postgresUser: user
+    postgresPassword: pass
+    postgresDb: logging
+  storage:
+    request: "1Gi"
+    limit: "10Gi"
+    persistentVolumeClaim:
+      storageRequest: 20Gi
+      storageClassName: standard
+      accessModes:
+        - ReadWriteOnce
+      hostPath: /mnt/data/logging-pv
+
+# Container resource settings (shared across applications)
+resources:
+  requests:
+    cpu: "0.5"
+    memory: "1Gi"
+  limits:
+    cpu: "1"
+    memory: "2Gi"

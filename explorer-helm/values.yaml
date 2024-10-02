@@ -1,0 +1,29 @@
+# values.yaml
+
+# Namespace for the resources
+namespace: starchat
+
+# Application settings for "explorer"
+explorer:
+  name: explorer
+  image:
+    repository: quay.io/jeslynlamxy/explorer-app
+    tag: latest
+  replicas: 1
+  ports:
+    containerPort: 8501 # Explorer's container port
+  route:
+    name: explorer-route
+    tlsTermination: edge
+    wildcardPolicy: None
+  env:
+    lol: test
+
+# Container resource settings (shared across applications)
+resources:
+  requests:
+    cpu: "0.5"
+    memory: "1Gi"
+  limits:
+    cpu: "1"
+    memory: "2Gi"

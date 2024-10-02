@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.logging.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.logging.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.logging.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.logging.name }}
+    spec:
+      containers:
+        - name: {{ .Values.logging.name }}
+          image: "{{ .Values.logging.image.repository }}:{{ .Values.logging.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.logging.ports.containerPort }}
+          env:
+            - name: POSTGRES_USER
+              value: "{{ .Values.logging.env.postgresUser }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.logging.env.postgresPassword }}"
+            - name: POSTGRES_DB
+              value: "{{ .Values.logging.env.postgresDb }}"
+          resources:
+            requests:
+              ephemeral-storage: "{{ .Values.logging.storage.request }}"
+            limits:
+              ephemeral-storage: "{{ .Values.logging.storage.limit }}"
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: logging-storage
+      volumes:
+        - name: logging-storage
+          persistentVolumeClaim:
+            claimName: logging-pvc

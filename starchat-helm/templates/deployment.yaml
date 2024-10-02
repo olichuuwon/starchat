@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.application.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.application.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.application.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.application.name }}
+    spec:
+      containers:
+        - name: {{ .Values.application.name }}
+          image: "{{ .Values.application.image.repository }}:{{ .Values.application.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.application.ports.containerPort }}
+          resources:
+            limits:
+              cpu: "{{ .Values.resources.limits.cpu }}"
+              memory: "{{ .Values.resources.limits.memory }}"
+            requests:
+              cpu: "{{ .Values.resources.requests.cpu }}"
+              memory: "{{ .Values.resources.requests.memory }}"
+          env:
+            - name: PYTHON_ENV
+              value: "{{ .Values.application.env.lol }}" # Example of a Python environment variable
+            - name: DATABASE_URL
+              value: "{{ .Values.application.env.lol }}" # Example database URL environment variable

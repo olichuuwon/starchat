@@ -12,4 +12,3 @@ spec:
     requests:
       storage: {{ .Values.logging.storage.persistentVolumeClaim.storageRequest }}
   storageClassName: {{ .Values.logging.storage.persistentVolumeClaim.storageClassName }}
----
