@@ -33,77 +33,29 @@ from langchain_community.utilities import SQLDatabase
 
 from urllib3.exceptions import InsecureRequestWarning
 
-import ssl
-import socket
-
-
-# def get_ssl_certificate(hostname, port=443):
-#     """
-#     Connects to a server and retrieves its SSL certificate.
-#     :param hostname: The server's hostname (e.g., keycloak.nebula.sl)
-#     :param port: The port to connect to (default: 443 for HTTPS)
-#     :return: The certificate in PEM format.
-#     """
-#     try:
-#         # Create an SSL context
-#         context = ssl.create_default_context()
-
-#         # Connect to the server
-#         with socket.create_connection((hostname, port)) as sock:
-#             with context.wrap_socket(sock, server_hostname=hostname) as ssock:
-#                 # Get the server's certificate in PEM format
-#                 server_cert = ssock.getpeercert(True)
-
-#                 # Save the certificate to a file
-#                 cert_file_path = f"{hostname}_cert.pem"
-#                 with open(cert_file_path, "wb") as cert_file:
-#                     cert_file.write(server_cert)
-
-#                 print(f"Certificate saved as {cert_file_path}")
-#                 return cert_file_path
-
-#     except Exception as e:
-#         print(f"Error retrieving the certificate: {e}")
-#         return None
-
-
-# # Example Usage
-# hostname = "keycloak.nebula.sl"
-# certificate_path = get_ssl_certificate(hostname)
-
-# if certificate_path:
-#     print(f"Certificate saved at: {certificate_path}")
-# else:
-#     print("Failed to retrieve the certificate.")
-
 # Suppress only the InsecureRequestWarning
 warnings.simplefilter("ignore", InsecureRequestWarning)
 
 # Load configurations from environment variables with default fallback values
-CLIENT_ID = os.getenv("CLIENT_ID", "flask_client")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET", "fxAtVg6qe1eh78V4NurL3SeSNm2v8tUD")
-KEYCLOAK_URL = os.getenv("KEYCLOAK_URL", "https://keycloak.nebula.sl")
-REALM = os.getenv("REALM", "text2sql")
-REDIRECT_URI = os.getenv(
-    "REDIRECT_URI", "https://application-route-starchat.apps.nebula.sl"
-)
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+KEYCLOAK_URL = os.getenv("KEYCLOAK_URL")
+REALM = os.getenv("REALM")
+REDIRECT_URI = os.getenv("REDIRECT_URI")
 
 # Load model configurations from environment variables
-OLLAMA_MODEL_NAME = os.getenv("OLLAMA_MODEL_NAME", "llama3:instruct")
-VLLM_MODEL_NAME = os.getenv("VLLM_MODEL_NAME", "Llama-3.1-8B-Instruct")
+OLLAMA_MODEL_NAME = os.getenv("OLLAMA_MODEL_NAME")
+VLLM_MODEL_NAME = os.getenv("VLLM_MODEL_NAME")
 
-OLLAMA_MODEL_BASE_URL = os.getenv("OLLAMA_MODEL_BASE_URL", "http://model:11434")
-VLLM_MODEL_BASE_URL = os.getenv(
-    "VLLM_MODEL_BASE_URL", "https://llama-8b-route-sy-vllm.apps.nebula.sl/v2/models"
-)
+OLLAMA_MODEL_BASE_URL = os.getenv("OLLAMA_MODEL_BASE_URL")
+VLLM_MODEL_BASE_URL = os.getenv("VLLM_MODEL_BASE_URL")
 
 # Determine LLM provider (ollama or vllm)
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama").lower()  # Default to "ollama"
+LLM_PROVIDER = os.getenv("LLM_PROVIDER")
 
 # Load logging URL from environment variables
-LOGGING_URL = os.getenv(
-    "LOGGING_URL", "postgresql+psycopg2://user:pass@logging:5432/logging"
-)
+LOGGING_URL = os.getenv("LOGGING_URL")
+
 logging_engine = create_engine(LOGGING_URL)
 logging_session = sessionmaker(bind=logging_engine)
 base = declarative_base()
@@ -300,7 +252,7 @@ def get_access_token(auth_code):
             "code": auth_code,
             "redirect_uri": REDIRECT_URI,
         }
-        response = requests.post(token_url, data=payload, verify="keycloak_cert.crt")
+        response = requests.post(token_url, data=payload, verify=False)
         access_token = response.json().get("access_token")
         return access_token
     except Exception as e:

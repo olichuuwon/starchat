@@ -8,9 +8,7 @@ st.set_page_config(page_title="Explorer", page_icon=":eyes:", layout="wide")
 st.title("🔎 Logs Explorer")
 
 # Load logging URL from environment variables
-LOGGING_URL = os.getenv(
-    "LOGGING_URL", "postgresql+psycopg2://user:pass@logging:5432/logging"
-)
+LOGGING_URL = os.getenv("LOGGING_URL")
 
 
 # Database connection setup using SQLAlchemy
