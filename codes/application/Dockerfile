@@ -95,6 +95,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
 COPY app.py /app/
+# COPY keycloak_cert.crt /app/
 
 # Expose the required port
 EXPOSE 8501

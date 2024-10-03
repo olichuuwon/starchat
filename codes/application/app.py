@@ -33,6 +33,49 @@ from langchain_community.utilities import SQLDatabase
 
 from urllib3.exceptions import InsecureRequestWarning
 
+import ssl
+import socket
+
+
+# def get_ssl_certificate(hostname, port=443):
+#     """
+#     Connects to a server and retrieves its SSL certificate.
+#     :param hostname: The server's hostname (e.g., keycloak.nebula.sl)
+#     :param port: The port to connect to (default: 443 for HTTPS)
+#     :return: The certificate in PEM format.
+#     """
+#     try:
+#         # Create an SSL context
+#         context = ssl.create_default_context()
+
+#         # Connect to the server
+#         with socket.create_connection((hostname, port)) as sock:
+#             with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+#                 # Get the server's certificate in PEM format
+#                 server_cert = ssock.getpeercert(True)
+
+#                 # Save the certificate to a file
+#                 cert_file_path = f"{hostname}_cert.pem"
+#                 with open(cert_file_path, "wb") as cert_file:
+#                     cert_file.write(server_cert)
+
+#                 print(f"Certificate saved as {cert_file_path}")
+#                 return cert_file_path
+
+#     except Exception as e:
+#         print(f"Error retrieving the certificate: {e}")
+#         return None
+
+
+# # Example Usage
+# hostname = "keycloak.nebula.sl"
+# certificate_path = get_ssl_certificate(hostname)
+
+# if certificate_path:
+#     print(f"Certificate saved at: {certificate_path}")
+# else:
+#     print("Failed to retrieve the certificate.")
+
 # Suppress only the InsecureRequestWarning
 warnings.simplefilter("ignore", InsecureRequestWarning)
 
@@ -257,7 +300,7 @@ def get_access_token(auth_code):
             "code": auth_code,
             "redirect_uri": REDIRECT_URI,
         }
-        response = requests.post(token_url, data=payload, verify=False)
+        response = requests.post(token_url, data=payload, verify="keycloak_cert.crt")
         access_token = response.json().get("access_token")
         return access_token
     except Exception as e:
