@@ -13,7 +13,7 @@ explorer:
   ports:
     containerPort: 8501 # Explorer's container port
   route:
-    name: explorer-route
+    name: explorer
     tlsTermination: edge
     wildcardPolicy: None
   env:
