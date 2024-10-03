@@ -26,7 +26,5 @@ spec:
               cpu: "{{ .Values.resources.requests.cpu }}"
               memory: "{{ .Values.resources.requests.memory }}"
           env:
-            - name: PYTHON_ENV
-              value: "{{ .Values.explorer.env.lol }}"
-            - name: DATABASE_URL
-              value: "{{ .Values.explorer.env.lol }}"
+            - name: LOGGING_URL
+              value: "{{ .Values.explorer.env.LOGGING_URL }}"
