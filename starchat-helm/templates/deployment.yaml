@@ -26,7 +26,25 @@ spec:
               cpu: "{{ .Values.resources.requests.cpu }}"
               memory: "{{ .Values.resources.requests.memory }}"
           env:
-            - name: PYTHON_ENV
-              value: "{{ .Values.application.env.lol }}" # Example of a Python environment variable
-            - name: DATABASE_URL
-              value: "{{ .Values.application.env.lol }}" # Example database URL environment variable
+            - name: CLIENT_ID
+              value: "{{ .Values.application.env.CLIENT_ID }}"
+            - name: CLIENT_SECRET
+              value: "{{ .Values.application.env.CLIENT_SECRET }}"
+            - name: KEYCLOAK_URL
+              value: "{{ .Values.application.env.KEYCLOAK_URL }}"
+            - name: REALM
+              value: "{{ .Values.application.env.REALM }}"
+            - name: REDIRECT_URI
+              value: "{{ .Values.application.env.REDIRECT_URI }}"
+            - name: OLLAMA_MODEL_NAME
+              value: "{{ .Values.application.env.OLLAMA_MODEL_NAME }}"
+            - name: VLLM_MODEL_NAME
+              value: "{{ .Values.application.env.VLLM_MODEL_NAME }}"
+            - name: OLLAMA_MODEL_BASE_URL
+              value: "{{ .Values.application.env.OLLAMA_MODEL_BASE_URL }}"
+            - name: VLLM_MODEL_BASE_URL
+              value: "{{ .Values.application.env.VLLM_MODEL_BASE_URL }}"
+            - name: LLM_PROVIDER
+              value: "{{ .Values.application.env.LLM_PROVIDER }}"
+            - name: LOGGING_URL
+              value: "{{ .Values.application.env.LOGGING_URL }}"
