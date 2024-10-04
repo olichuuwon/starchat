@@ -352,8 +352,7 @@ def get_chat_response(user_query, chat_history):
             "text_input": prompt_text,
             "parameters": {
                 "stream": False,
-                "temperature": 0,
-                "max_tokens": 200
+                "temperature": 0
             }
         }
 
