@@ -23,42 +23,11 @@ RUN . /opt/venv/bin/activate && pip install --no-cache-dir -r /app/requirements.
 # Copy the rest of the application code
 COPY app.py /app/
 
-# Set environment variables
-ENV PYTHON_VERSION=3.12
-ENV PIP_VERSION=23.1.2
-
-# Install necessary dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    python${PYTHON_VERSION} \
-    python${PYTHON_VERSION}-dev \
-    python3-pip \
-    libopenblas-dev \
-    libomp-dev \
-    git \
-    wget \
-    python3-venv \  
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create a virtual environment
-RUN python3 -m venv /venv
-
-# Upgrade pip in the virtual environment
-RUN /venv/bin/pip install --upgrade pip==${PIP_VERSION}
-
-# Install PyTorch and torchvision with CUDA support in the virtual environment
-RUN /venv/bin/pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu118 
-
-# Set the environment to use the virtual environment
-ENV PATH="/venv/bin:$PATH"
-
 # Expose the required port
 EXPOSE 8501
 
 # Set environment variable to prevent Python from buffering stdout/stderr
 ENV PYTHONUNBUFFERED=1
 
-
 # Set the entrypoint to run the Streamlit application in the virtual environment
-ENTRYPOINT ["/venv/bin/streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["/opt/venv/bin/streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
