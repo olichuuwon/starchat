@@ -362,7 +362,9 @@ def get_chat_response(user_query, chat_history):
             raise Exception(f"Failed to get response from Triton API: {response.text}")
 
         # Extract the assistant's response from the API response
-        data = response.text.dumps()
+        data = response.dumps()
+        # hello
+        
         return data # Assuming this is where the response text is
 
     else:
