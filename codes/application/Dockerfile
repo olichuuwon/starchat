@@ -25,7 +25,7 @@ COPY app.py /app/
 
 # Set environment variables
 ENV PYTHON_VERSION=3.12
-ENV PIP_VERSION=23.1.2  # Adjust this based on the latest version
+ENV PIP_VERSION=23.1.2
 
 # Install necessary dependencies
 RUN apt-get update && apt-get install -y \
@@ -44,7 +44,7 @@ RUN apt-get update && apt-get install -y \
 RUN python3 -m pip install --upgrade pip==${PIP_VERSION}
 
 # Install PyTorch and torchvision with CUDA support
-RUN pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu118  # Adjust according to your CUDA version
+RUN pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu118 
 
 # Expose the required port
 EXPOSE 8501
