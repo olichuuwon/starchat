@@ -404,9 +404,8 @@ def chat_mode_function():
 
         # Generate and display the AI's response
         with st.chat_message("AI"):
-            response = st.write(
-                get_chat_response(user_query, st.session_state.chat_history)
-            )
+            response = get_chat_response(user_query, st.session_state.chat_history)
+            st.write(response)
         # Append the AI's response to the chat history
         st.session_state.chat_history.append(AIMessage(content=response))
         add_llm_input_output(
