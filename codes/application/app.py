@@ -351,7 +351,7 @@ def get_chat_response(user_query, chat_history):
         payload = {
             "text_input": prompt_text,
             "parameters": {
-                "stream": True
+                "stream": False
             }
         }
 
