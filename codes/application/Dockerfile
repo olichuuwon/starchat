@@ -59,5 +59,6 @@ EXPOSE 8501
 # Set environment variable to prevent Python from buffering stdout/stderr
 ENV PYTHONUNBUFFERED=1
 
+
 # Set the entrypoint to run the Streamlit application in the virtual environment
-ENTRYPOINT ["/opt/venv/bin/streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["/venv/bin/streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
