@@ -351,7 +351,9 @@ def get_chat_response(user_query, chat_history):
         payload = {
             "text_input": prompt_text,
             "parameters": {
-                "stream": False
+                "stream": False,
+                "temperature": 0,
+                "max_tokens": 5000
             }
         }
 
@@ -363,8 +365,6 @@ def get_chat_response(user_query, chat_history):
 
         # Extract the assistant's response from the API response
         data = response.text
-        # hello
-
         return data # Assuming this is where the response text is
 
     else:
