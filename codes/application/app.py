@@ -362,10 +362,10 @@ def get_chat_response(user_query, chat_history):
             raise Exception(f"Failed to get response from Triton API: {response.text}")
 
         # Extract the assistant's response from the API response
-        data = response.dumps()
+        data = response.text.json()
         # hello
-        
-        return data # Assuming this is where the response text is
+
+        return data["output_text"] # Assuming this is where the response text is
 
     else:
         raise ValueError(f"Unsupported LLM provider: {LLM_PROVIDER}")
