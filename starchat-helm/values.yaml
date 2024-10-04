@@ -25,7 +25,7 @@ application:
     VLLM_FULL_MODEL: https://triton-llama8b-route-triton-inference-services.apps.nebula.sl/v2/models/Meta-Llama-3-8B-Instruct-AWQ/generate
     LLM_PROVIDER: vllm
     LOGGING_URL: postgresql+psycopg2://user:pass@logging:5432/logging
-    LOGGING: 0
+    LOGGING: False
 
 # Container resource settings (shared across applications)
 resources:
