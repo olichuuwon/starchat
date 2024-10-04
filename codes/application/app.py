@@ -334,7 +334,7 @@ def get_chat_response(user_query, chat_history):
         )
     elif LLM_PROVIDER == "vllm":
         # Initialize VLLM model
-        llm = VLLM(model=VLLM_MODEL_NAME, base_url=VLLM_MODEL_BASE_URL, verbose=True, device="gpu")
+        llm = VLLM(model=VLLM_MODEL_NAME, base_url=VLLM_MODEL_BASE_URL, verbose=True, device="cuda")
     else:
         raise ValueError(f"Unsupported LLM provider: {LLM_PROVIDER}")
 
