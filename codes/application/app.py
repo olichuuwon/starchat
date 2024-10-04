@@ -54,6 +54,7 @@ VLLM_MODEL_BASE_URL = os.getenv("VLLM_MODEL_BASE_URL")
 LLM_PROVIDER = os.getenv("LLM_PROVIDER")
 
 # Load logging URL from environment variables
+LOGGING = os.getenv("LOGGING")
 LOGGING_URL = os.getenv("LOGGING_URL")
 
 logging_engine = create_engine(LOGGING_URL)
@@ -334,7 +335,7 @@ def get_chat_response(user_query, chat_history):
         )
     elif LLM_PROVIDER == "vllm":
         # Initialize VLLM model
-        llm = VLLM(model=VLLM_MODEL_NAME, base_url=VLLM_MODEL_BASE_URL, verbose=True, device="cuda")
+        llm = VLLM(model=VLLM_MODEL_NAME, base_url=VLLM_MODEL_BASE_URL, verbose=True)
     else:
         raise ValueError(f"Unsupported LLM provider: {LLM_PROVIDER}")
 
@@ -453,9 +454,12 @@ def main():
     if "jwt_token" not in st.session_state:
         st.session_state.jwt_token = None
 
-    if st.session_state.jwt_token is None:
+    if st.session_state.jwt_token is None and LOGGING:
         with st.spinner("Authenticating..."):
             st.session_state.jwt_token = authenticate()
+    elif st.session_state.jwt_token is None and not LOGGING:
+        st.session_state.jwt_token["preferred_username"] = "unknown-user"
+
 
     if st.session_state.jwt_token:
         st.sidebar.title("🌠 Starchat")

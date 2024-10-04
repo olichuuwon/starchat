@@ -48,3 +48,7 @@ spec:
               value: "{{ .Values.application.env.LLM_PROVIDER }}"
             - name: LOGGING_URL
               value: "{{ .Values.application.env.LOGGING_URL }}"
+            - name: LOGGING
+              value: "{{ .Values.application.env.LOGGING }}"
+            - name: VLLM_FULL_MODEL
+              value: "{{ .Values.application.env.VLLM_FULL_MODEL }}"
