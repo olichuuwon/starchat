@@ -311,11 +311,11 @@ def authenticate():
         st.error(f"authenticate: {e}")
         return None
 
-
 def get_chat_response(user_query, chat_history):
     """
-    get chat response
+    Get chat response by sending a request to the Triton VLLM API.
     """
+    # Prepare the template
     template = """
     You are a helpful assistant. Answer the following questions considering the history of the conversation:
 
@@ -327,53 +327,48 @@ def get_chat_response(user_query, chat_history):
     # Create a prompt template from the provided template
     prompt = ChatPromptTemplate.from_template(template)
 
-    # Initialize the language model with the specified model name and base URL
+    # Create the actual prompt to send to the model
+    prompt_text = prompt.format(
+        chat_history=chat_history,
+        user_question=user_query
+    )
 
-    # Conditionally import the required library
+    # Depending on the provider, make the appropriate API call
     if LLM_PROVIDER == "ollama":
-        # Initialize Ollama model
+        # Initialize Ollama model (use your existing code for Ollama)
         llm = Ollama(
             model=OLLAMA_MODEL_NAME, base_url=OLLAMA_MODEL_BASE_URL, verbose=True
         )
-    elif LLM_PROVIDER == "vllm":
-        # Initialize VLLM model
-        # """
-        # # Initialize the VLLM model
-        # vllm_model = VLLM(
-        # model="/home/ubuntu/Rag_23ai/Llama-2-7b-chat-hf",
-        # tensor_parallel_size=1,
-        # trust_remote_code=False,
-        # n=1,
-        # best_of=None,
-        # presence_penalty=0.0,
-        # frequency_penalty=0.0,
-        # temperature=1.0,
-        # top_p=1.0,
-        # top_k=-1,
-        # use_beam_search=False,
-        # stop=None,
-        # ignore_eos=False,
-        # max_new_tokens=512,
-        # logprobs=None,
-        # dtype="auto",
-        # download_dir=None,
-        # vllm_kwargs={}
-        # )
-        # """
-        llm = VLLM(model=VLLM_FULL_MODEL, device="cuda", verbose=True)
-    else:
-        raise ValueError(f"Unsupported LLM provider: {LLM_PROVIDER}")
-
-    # Create a chain that processes the prompt and parses the output
-    chain = prompt | llm | StrOutputParser()
-
-    # Invoke the chain with the user's question and conversation history
-    return chain.stream(
-        {
+        chain = prompt | llm | StrOutputParser()
+        return chain.invoke({
             "chat_history": chat_history,
             "user_question": user_query,
+        })
+
+    elif LLM_PROVIDER == "vllm":
+        # Make the POST request to the Triton API
+        headers = {"Content-Type": "application/json"}
+        payload = {
+            "text_input": prompt_text,
+            "parameters": {
+                "stream": False,
+                "temperature": 0,
+                "max_tokens": 200
+            }
         }
-    )
+
+        response = requests.post(VLLM_FULL_MODEL, json=payload, headers=headers, verify=False)
+        
+        # Handle errors or invalid responses
+        if response.status_code != 200:
+            raise Exception(f"Failed to get response from Triton API: {response.text}")
+
+        # Extract the assistant's response from the API response
+        data = response.json()
+        return data['outputs'][0]['text']  # Assuming this is where the response text is
+
+    else:
+        raise ValueError(f"Unsupported LLM provider: {LLM_PROVIDER}")
 
 
 def chat_mode_function():
@@ -409,7 +404,7 @@ def chat_mode_function():
 
         # Generate and display the AI's response
         with st.chat_message("AI"):
-            response = st.write_stream(
+            response = st.write(
                 get_chat_response(user_query, st.session_state.chat_history)
             )
         # Append the AI's response to the chat history
