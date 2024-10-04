@@ -37,14 +37,21 @@ RUN apt-get update && apt-get install -y \
     libomp-dev \
     git \
     wget \
+    python3-venv \  
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python packages
-# RUN python3 -m pip install --upgrade pip==${PIP_VERSION}
+# Create a virtual environment
+RUN python3 -m venv /venv
 
-# Install PyTorch and torchvision with CUDA support
-RUN pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu118 
+# Upgrade pip in the virtual environment
+RUN /venv/bin/pip install --upgrade pip==${PIP_VERSION}
+
+# Install PyTorch and torchvision with CUDA support in the virtual environment
+RUN /venv/bin/pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu118 
+
+# Set the environment to use the virtual environment
+ENV PATH="/venv/bin:$PATH"
 
 # Expose the required port
 EXPOSE 8501
