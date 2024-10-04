@@ -22,7 +22,7 @@ application:
     OLLAMA_MODEL_BASE_URL: http://model:11434
     VLLM_MODEL_NAME: Llama-3.1-8B-Instruct-AWQ
     VLLM_MODEL_BASE_URL: https://llama-8b-route-sy-vllm.apps.nebula.sl/v2/models
-    VLLM_FULL_MODEL: https://triton-llama8b-route-triton-inference-services.apps.nebula.sl/v2/models/Meta-Llama-3-8B-Instruct-AWQ
+    VLLM_FULL_MODEL: https://triton-llama8b-route-triton-inference-services.apps.nebula.sl/v2/models/Meta-Llama-3-8B-Instruct-AWQ/generate
     LLM_PROVIDER: vllm
     LOGGING_URL: postgresql+psycopg2://user:pass@logging:5432/logging
     LOGGING: 0
