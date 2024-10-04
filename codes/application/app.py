@@ -337,7 +337,30 @@ def get_chat_response(user_query, chat_history):
         )
     elif LLM_PROVIDER == "vllm":
         # Initialize VLLM model
-        llm = VLLM(model=VLLM_FULL_MODEL, verbose=True)
+        """
+        # Initialize the VLLM model
+        vllm_model = VLLM(
+        model="/home/ubuntu/Rag_23ai/Llama-2-7b-chat-hf",
+        tensor_parallel_size=1,
+        trust_remote_code=False,
+        n=1,
+        best_of=None,
+        presence_penalty=0.0,
+        frequency_penalty=0.0,
+        temperature=1.0,
+        top_p=1.0,
+        top_k=-1,
+        use_beam_search=False,
+        stop=None,
+        ignore_eos=False,
+        max_new_tokens=512,
+        logprobs=None,
+        dtype="auto",
+        download_dir=None,
+        vllm_kwargs={}
+        )
+        """
+        llm = VLLM(model=VLLM_FULL_MODEL, device="auto", verbose=True)
     else:
         raise ValueError(f"Unsupported LLM provider: {LLM_PROVIDER}")
 
