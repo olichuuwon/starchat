@@ -471,12 +471,12 @@ def main():
     main
     """
     if "jwt_token" not in st.session_state:
-        st.session_state.jwt_token = None
+        st.session_state.jwt_token = {}
 
-    if st.session_state.jwt_token is None and LOGGING=="true":
+    if st.session_state.jwt_token == {} and LOGGING=="true":
         with st.spinner("Authenticating..."):
             st.session_state.jwt_token = authenticate()
-    elif st.session_state.jwt_token is None and LOGGING=="false":
+    elif st.session_state.jwt_token == {} and LOGGING=="false":
         st.session_state.jwt_token["preferred_username"] = "unknown-user"
 
 
