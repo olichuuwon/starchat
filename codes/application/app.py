@@ -473,7 +473,7 @@ def main():
     if "jwt_token" not in st.session_state:
         st.session_state.jwt_token = None
 
-    if st.session_state.jwt_token is None and LOGGING:
+    if st.session_state.jwt_token is None and LOGGING==True:
         with st.spinner("Authenticating..."):
             st.session_state.jwt_token = authenticate()
     elif st.session_state.jwt_token is None and not LOGGING:
