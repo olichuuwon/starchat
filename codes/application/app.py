@@ -360,7 +360,7 @@ def get_chat_response(user_query, chat_history):
         # vllm_kwargs={}
         # )
         # """
-        llm = VLLM(model=VLLM_FULL_MODEL, device="gpu", verbose=True)
+        llm = VLLM(model=VLLM_FULL_MODEL, device="cuda", verbose=True)
     else:
         raise ValueError(f"Unsupported LLM provider: {LLM_PROVIDER}")
 
