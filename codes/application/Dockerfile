@@ -23,6 +23,8 @@ RUN . /opt/venv/bin/activate && pip install --no-cache-dir -r /app/requirements.
 # Copy the rest of the application code
 COPY app.py /app/
 
+RUN pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu118
+
 # Expose the required port
 EXPOSE 8501
 
