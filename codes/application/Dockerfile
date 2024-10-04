@@ -23,7 +23,28 @@ RUN . /opt/venv/bin/activate && pip install --no-cache-dir -r /app/requirements.
 # Copy the rest of the application code
 COPY app.py /app/
 
-RUN pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu118
+# Set environment variables
+ENV PYTHON_VERSION=3.12
+ENV PIP_VERSION=23.1.2  # Adjust this based on the latest version
+
+# Install necessary dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python${PYTHON_VERSION} \
+    python${PYTHON_VERSION}-dev \
+    python3-pip \
+    libopenblas-dev \
+    libomp-dev \
+    git \
+    wget \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages
+RUN python3 -m pip install --upgrade pip==${PIP_VERSION}
+
+# Install PyTorch and torchvision with CUDA support
+RUN pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu118  # Adjust according to your CUDA version
 
 # Expose the required port
 EXPOSE 8501
