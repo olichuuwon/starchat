@@ -50,6 +50,8 @@ VLLM_MODEL_NAME = os.getenv("VLLM_MODEL_NAME")
 OLLAMA_MODEL_BASE_URL = os.getenv("OLLAMA_MODEL_BASE_URL")
 VLLM_MODEL_BASE_URL = os.getenv("VLLM_MODEL_BASE_URL")
 
+VLLM_FULL_MODEL = os.getenv("VLLM_FULL_MODEL")
+
 # Determine LLM provider (ollama or vllm)
 LLM_PROVIDER = os.getenv("LLM_PROVIDER")
 
@@ -335,7 +337,7 @@ def get_chat_response(user_query, chat_history):
         )
     elif LLM_PROVIDER == "vllm":
         # Initialize VLLM model
-        llm = VLLM(model=VLLM_MODEL_NAME, base_url=VLLM_MODEL_BASE_URL, verbose=True)
+        llm = VLLM(model=VLLM_FULL_MODEL, verbose=True)
     else:
         raise ValueError(f"Unsupported LLM provider: {LLM_PROVIDER}")
 
