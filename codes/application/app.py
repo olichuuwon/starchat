@@ -365,7 +365,7 @@ def get_chat_response(user_query, chat_history):
 
         # Extract the assistant's response from the API response
         data = response.json()
-        return data['outputs'][0]['text']  # Assuming this is where the response text is
+        return data # Assuming this is where the response text is
 
     else:
         raise ValueError(f"Unsupported LLM provider: {LLM_PROVIDER}")
