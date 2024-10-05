@@ -311,61 +311,50 @@ def authenticate():
         st.error(f"authenticate: {e}")
         return None
 
+
+import re
+
+
 def get_chat_response(user_query, chat_history):
     """
     Get chat response by sending a request to the Triton VLLM API.
     """
-    # Prepare the template
+    # Prepare an explicit template to minimize extra explanations
     template = """
-    You are a helpful assistant. Answer the following questions considering the history of the conversation:
+    You are a helpful assistant. Please answer the user's question concisely based on the chat history:
 
     Chat history: {chat_history}
 
     User question: {user_question}
+
+    Only return the exact response to the question. Do not provide any additional explanation, formatting, or code.
     """
 
-    # Create a prompt template from the provided template
+    # Format the prompt
     prompt = ChatPromptTemplate.from_template(template)
+    prompt_text = prompt.format(chat_history=chat_history, user_question=user_query)
 
-    # Create the actual prompt to send to the model
-    prompt_text = prompt.format(
-        chat_history=chat_history,
-        user_question=user_query
-    )
+    # st.write(prompt_text)
 
-    # Depending on the provider, make the appropriate API call
-    if LLM_PROVIDER == "ollama":
-        # Initialize Ollama model (use your existing code for Ollama)
-        llm = Ollama(
-            model=OLLAMA_MODEL_NAME, base_url=OLLAMA_MODEL_BASE_URL, verbose=True
-        )
-        chain = prompt | llm | StrOutputParser()
-        return chain.invoke({
-            "chat_history": chat_history,
-            "user_question": user_query,
-        })
-
-    elif LLM_PROVIDER == "vllm":
-        # Make the POST request to the Triton API
+    if LLM_PROVIDER == "vllm":
         headers = {"Content-Type": "application/json"}
         payload = {
             "text_input": prompt_text,
-            "parameters": {
-                "stream": False,
-                "temperature": 0,
-                "max_tokens": 5000
-            }
+            "parameters": {"stream": False, "temperature": 0, "max_tokens": 1000},
         }
 
-        response = requests.post(VLLM_FULL_MODEL, json=payload, headers=headers, verify=False)
-        
-        # Handle errors or invalid responses
+        response = requests.post(
+            VLLM_FULL_MODEL, json=payload, headers=headers, verify=False
+        )
+
         if response.status_code != 200:
             raise Exception(f"Failed to get response from Triton API: {response.text}")
 
-        # Extract the assistant's response from the API response
-        data = response.text
-        return data # Assuming this is where the response text is
+        # Assuming the response is in JSON format and extracting the relevant part
+        data = response.json()
+        assistant_response = data.get("text_output", "")
+
+        return assistant_response  # Return the cleaned and concise response
 
     else:
         raise ValueError(f"Unsupported LLM provider: {LLM_PROVIDER}")
@@ -473,12 +462,11 @@ def main():
     if "jwt_token" not in st.session_state:
         st.session_state.jwt_token = {}
 
-    if st.session_state.jwt_token == {} and LOGGING=="true":
+    if st.session_state.jwt_token == {} and LOGGING == "true":
         with st.spinner("Authenticating..."):
             st.session_state.jwt_token = authenticate()
-    elif st.session_state.jwt_token == {} and LOGGING=="false":
+    elif st.session_state.jwt_token == {} and LOGGING == "false":
         st.session_state.jwt_token["preferred_username"] = "unknown-user"
-
 
     if st.session_state.jwt_token:
         st.sidebar.title("🌠 Starchat")
