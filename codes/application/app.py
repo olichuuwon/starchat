@@ -9,6 +9,7 @@ import uuid
 import warnings
 import requests
 from datetime import datetime, timedelta
+from time import sleep
 
 import streamlit as st
 
@@ -62,6 +63,22 @@ LOGGING_URL = os.getenv("LOGGING_URL")
 logging_engine = create_engine(LOGGING_URL)
 logging_session = sessionmaker(bind=logging_engine)
 base = declarative_base()
+template = """
+<|begin_of_text|>
+
+<|start_header_id|>assistant<|end_header_id|>
+You are a direct and concise assistant. Answer the user’s latest question clearly and succinctly.
+After responding to the first question, wait for more User input.
+<|eot_id|>
+
+{chat_history}
+
+<|start_header_id|>user<|end_header_id|>
+{user_question}
+<|eot_id|>
+
+<|start_header_id|>assistant<|end_header_id|>
+"""
 
 
 # Function to get current time in GMT+8
@@ -320,15 +337,7 @@ def get_chat_response(user_query, chat_history):
     Get chat response by sending a request to the Triton VLLM API.
     """
     # Prepare an explicit template to minimize extra explanations
-    template = """
-    You are a helpful assistant. Please answer the user's question concisely based on the chat history:
 
-    Chat history: {chat_history}
-
-    User question: {user_question}
-
-    Only return the exact response to the question. Do not provide any additional explanation, formatting, or code.
-    """
 
     # Format the prompt
     prompt = ChatPromptTemplate.from_template(template)
@@ -353,8 +362,9 @@ def get_chat_response(user_query, chat_history):
         # Assuming the response is in JSON format and extracting the relevant part
         data = response.json()
         assistant_response = data.get("text_output", "")
+        procesesed_response = assistant_response.split("<|start_header_id|>assistant<|end_header_id|>")[-1]
 
-        return assistant_response  # Return the cleaned and concise response
+        return procesesed_response  # Return the cleaned and concise response
 
     else:
         raise ValueError(f"Unsupported LLM provider: {LLM_PROVIDER}")
@@ -394,7 +404,8 @@ def chat_mode_function():
         # Generate and display the AI's response
         with st.chat_message("AI"):
             response = get_chat_response(user_query, st.session_state.chat_history)
-            st.write(response)
+            typewriter_effect(response)
+            
         # Append the AI's response to the chat history
         st.session_state.chat_history.append(AIMessage(content=response))
         add_llm_input_output(
@@ -453,6 +464,22 @@ def feedback_form():
             st.success("Thank you for your feedback!")
         else:
             st.error("Please provide your feedback before submitting.")
+
+
+def typewriter_effect(text, speed=0.001):
+    """
+    Function to display text in a typewriter effect.
+    :param text: The full text to display.
+    :param speed: Speed of typing (in seconds).
+    """
+    placeholder = st.empty()  # Create a placeholder to display the text
+    typed_text = ""
+
+    # Add characters one by one to the typed_text and update the placeholder
+    for char in text:
+        typed_text += char
+        placeholder.markdown(typed_text)  # Update the text displayed in the placeholder
+        sleep(speed)  # Introduce delay to simulate typing
 
 
 def main():

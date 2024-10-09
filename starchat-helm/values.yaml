@@ -20,9 +20,9 @@ application:
     REDIRECT_URI: https://application-route-starchat.apps.nebula.sl
     OLLAMA_MODEL_NAME: llama3:instruct
     OLLAMA_MODEL_BASE_URL: http://model:11434
-    VLLM_MODEL_NAME: Llama-3.1-8B-Instruct-AWQ
-    VLLM_MODEL_BASE_URL: https://llama-8b-route-sy-vllm.apps.nebula.sl/v2/models
-    VLLM_FULL_MODEL: https://triton-llama8b-route-triton-inference-services.apps.nebula.sl/v2/models/Meta-Llama-3-8B-Instruct-AWQ/generate
+    VLLM_MODEL_NAME: meta-llama-3-8b-instruct-awq
+    VLLM_MODEL_BASE_URL: http://triton-is-predictor.triton-inference-services.svc.cluster.local:8080/v2/models
+    VLLM_FULL_MODEL: http://triton-is-predictor.triton-inference-services.svc.cluster.local:8080/v2/models/meta-llama-3-8b-instruct-awq/generate
     LLM_PROVIDER: vllm
     LOGGING_URL: postgresql+psycopg2://user:pass@logging:5432/logging
     LOGGING: False
