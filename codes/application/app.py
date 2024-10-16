@@ -63,6 +63,7 @@ LOGGING_URL = os.getenv("LOGGING_URL")
 logging_engine = create_engine(LOGGING_URL)
 logging_session = sessionmaker(bind=logging_engine)
 base = declarative_base()
+
 template = """
 <|begin_of_text|>
 
@@ -218,7 +219,6 @@ def add_user_suggestion(username, suggestion):
 
 
 base.metadata.create_all(logging_engine)
-
 st.set_page_config(page_title="Starchat", page_icon=":speech_balloon:", layout="wide")
 
 
@@ -329,15 +329,11 @@ def authenticate():
         return None
 
 
-import re
-
-
 def get_chat_response(user_query, chat_history):
     """
     Get chat response by sending a request to the Triton VLLM API.
     """
     # Prepare an explicit template to minimize extra explanations
-
 
     # Format the prompt
     prompt = ChatPromptTemplate.from_template(template)
@@ -362,7 +358,9 @@ def get_chat_response(user_query, chat_history):
         # Assuming the response is in JSON format and extracting the relevant part
         data = response.json()
         assistant_response = data.get("text_output", "")
-        procesesed_response = assistant_response.split("<|start_header_id|>assistant<|end_header_id|>")[-1]
+        procesesed_response = assistant_response.split(
+            "<|start_header_id|>assistant<|end_header_id|>"
+        )[-1]
 
         return procesesed_response  # Return the cleaned and concise response
 
@@ -405,7 +403,7 @@ def chat_mode_function():
         with st.chat_message("AI"):
             response = get_chat_response(user_query, st.session_state.chat_history)
             typewriter_effect(response)
-            
+
         # Append the AI's response to the chat history
         st.session_state.chat_history.append(AIMessage(content=response))
         add_llm_input_output(
@@ -421,8 +419,6 @@ def database_mode_function():
     """
     st.title("🐘 Database Mode")
     st.write("Coming soon...")
-    if st.button("Submit Suggestion"):
-        suggestion_form()  # Open the feedback form dialog
 
 
 # Feedback dialog function
@@ -497,21 +493,27 @@ def main():
 
     if st.session_state.jwt_token:
         st.sidebar.title("🌠 Starchat")
-        # Main app logic
-        modes = ["Chat Mode", "Database Mode"]
-        if "page_selected" not in st.session_state:
-            st.session_state.page_selected = modes[0]
+        chat_mode_function()
 
-        selected_mode = st.sidebar.radio("Select Mode", modes)
-        st.session_state.page_selected = selected_mode
-        if selected_mode == "Chat Mode":
-            chat_mode_function()
-        elif selected_mode == "Database Mode":
-            database_mode_function()
+        # Main app logic
+        # modes = ["Chat Mode", "Database Mode"]
+        # if "page_selected" not in st.session_state:
+        #     st.session_state.page_selected = modes[0]
+
+        # selected_mode = st.sidebar.radio("Select Mode", modes)
+        # st.session_state.page_selected = selected_mode
+        # if selected_mode == "Chat Mode":
+        #     chat_mode_function()
+        # elif selected_mode == "Database Mode":
+        #     database_mode_function()
 
         with st.sidebar:
+            st.caption("How was your user experience?")
             if st.button("Submit Feedback"):
                 feedback_form()  # Open the feedback form dialog
+            st.caption("What are some tools that could improve your workflows?")
+            if st.button("Submit Suggestion"):
+                suggestion_form()  # Open the suggestion form dialog
 
 
 if __name__ == "__main__":
