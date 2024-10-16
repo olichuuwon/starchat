@@ -530,7 +530,7 @@ def main():
             if st.button("Share Suggestion"):
                 suggestion_form()  # Open the suggestion form dialog
             st.caption("Would you like to restart the conversation and clear history?")
-            if st.button("Clear Chat History"):
+            if st.button("Restart Chat History"):
                 st.session_state.chat_history = [
                     AIMessage(
                         content="Hello, I am a helpful assistant. How can I help you?"
