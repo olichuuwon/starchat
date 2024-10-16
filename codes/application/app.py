@@ -62,7 +62,7 @@ WEB_LINK = os.getenv("WEB_LINK")
 
 # Where logs go
 LOGGING_ENDPOINT = os.getenv("LOGGING_ENDPOINT")
-
+st.write(LOGGING_ENDPOINT)
 # Logging engine
 logging_engine = create_engine(LOGGING_ENDPOINT)
 logging_session = sessionmaker(bind=logging_engine)
