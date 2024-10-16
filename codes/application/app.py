@@ -8,7 +8,6 @@ import json
 import uuid
 import warnings
 import requests
-import http.cookies
 from datetime import datetime, timedelta
 from time import sleep
 
