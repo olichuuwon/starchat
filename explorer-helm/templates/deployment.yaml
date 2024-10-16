@@ -26,5 +26,7 @@ spec:
               cpu: "{{ .Values.resources.requests.cpu }}"
               memory: "{{ .Values.resources.requests.memory }}"
           env:
-            - name: LOGGING_URL
-              value: "{{ .Values.explorer.env.LOGGING_URL }}"
+            {{- range $key, $value := .Values.explorer.env }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+            {{- end }}

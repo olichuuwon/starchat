@@ -19,12 +19,10 @@ spec:
           ports:
             - containerPort: {{ .Values.logging.ports.containerPort }}
           env:
-            - name: POSTGRES_USER
-              value: "{{ .Values.logging.env.postgresUser }}"
-            - name: POSTGRES_PASSWORD
-              value: "{{ .Values.logging.env.postgresPassword }}"
-            - name: POSTGRES_DB
-              value: "{{ .Values.logging.env.postgresDb }}"
+            {{- range $key, $value := .Values.logging.env }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+            {{- end }}
           resources:
             requests:
               ephemeral-storage: "{{ .Values.logging.storage.request }}"

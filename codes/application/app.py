@@ -62,7 +62,6 @@ WEB_LINK = os.getenv("WEB_LINK")
 
 # Where logs go
 LOGGING_ENDPOINT = os.getenv("LOGGING_ENDPOINT")
-st.write(LOGGING_ENDPOINT)
 # Logging engine
 logging_engine = create_engine(LOGGING_ENDPOINT)
 logging_session = sessionmaker(bind=logging_engine)
@@ -338,16 +337,9 @@ def oauth_proxy():
     """
     piggyback authentication
     """
-
-    # Create a cookie
-    cookie = http.cookies.SimpleCookie()
-    cookie[PROXY_JWT_KEY] = "cookie_value"
-
     session = requests.Session()
-    response = session.get(WEB_LINK)
-    if response.status_code != 200:
-        raise Exception(f"Failed to get response from OAuth Proxy: {response.text}")
     cookie = session.cookies.get_dict()
+    cookie[PROXY_JWT_KEY] = {"preferred_username": "cookie_identity"}
     return cookie[PROXY_JWT_KEY]
 
 
@@ -408,10 +400,6 @@ def chat_mode_function():
     chat mode function
     """
     st.title("🦛 Chat Mode")
-    if st.button("Clear Chat History"):
-        st.session_state.chat_history = [
-            AIMessage(content="Hello, I am a helpful assistant. How can I help you?"),
-        ]
 
     # Initialize chat history in session state if not already done
     if "chat_history" not in st.session_state:
@@ -513,6 +501,7 @@ def main():
     """
     main
     """
+
     if "jwt_token" not in st.session_state:
         st.session_state.jwt_token = {}
 
@@ -520,7 +509,7 @@ def main():
         st.session_state.jwt_token = keycloak_api()
     elif st.session_state.jwt_token == {} and AUTH_PROVIDER == "oauth-proxy":
         st.session_state.jwt_token = oauth_proxy()
-    else:
+    elif st.session_state.jwt_token == {} and AUTH_PROVIDER == "none":
         st.session_state.jwt_token["preferred_username"] = "unknown-user"
 
     if st.session_state.jwt_token:
@@ -536,6 +525,14 @@ def main():
             )
             if st.button("Share Suggestion"):
                 suggestion_form()  # Open the suggestion form dialog
+            st.caption("Would you like to restart the conversation and clear history?")
+            if st.button("Clear Chat History"):
+                st.session_state.chat_history = [
+                    AIMessage(
+                        content="Hello, I am a helpful assistant. How can I help you?"
+                    ),
+                ]
+                st.rerun()
 
 
 if __name__ == "__main__":
