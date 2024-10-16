@@ -8,6 +8,7 @@ import json
 import uuid
 import warnings
 import requests
+import http.cookies
 from datetime import datetime, timedelta
 from time import sleep
 
@@ -27,43 +28,47 @@ from sqlalchemy.orm import sessionmaker
 
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
-from langchain_community.llms import Ollama, VLLM
-from langchain_community.utilities import SQLDatabase
-
+from langchain_community.llms import Ollama
 from urllib3.exceptions import InsecureRequestWarning
 
 # Suppress only the InsecureRequestWarning
 warnings.simplefilter("ignore", InsecureRequestWarning)
 
-# Load configurations from environment variables with default fallback values
+# KEYCLOAK AUTH
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 KEYCLOAK_URL = os.getenv("KEYCLOAK_URL")
 REALM = os.getenv("REALM")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
 
-# Load model configurations from environment variables
+# OLLAMA MODEL
 OLLAMA_MODEL_NAME = os.getenv("OLLAMA_MODEL_NAME")
-VLLM_MODEL_NAME = os.getenv("VLLM_MODEL_NAME")
-
 OLLAMA_MODEL_BASE_URL = os.getenv("OLLAMA_MODEL_BASE_URL")
-VLLM_MODEL_BASE_URL = os.getenv("VLLM_MODEL_BASE_URL")
 
+# VLLM MODEL
+VLLM_MODEL_NAME = os.getenv("VLLM_MODEL_NAME")
 VLLM_FULL_MODEL = os.getenv("VLLM_FULL_MODEL")
 
 # Determine LLM provider (ollama or vllm)
 LLM_PROVIDER = os.getenv("LLM_PROVIDER")
 
-# Load logging URL from environment variables
-LOGGING = os.getenv("LOGGING")
-LOGGING_URL = os.getenv("LOGGING_URL")
+# Determine AUTH provider (keycloak-api or oauth-proxy)
+AUTH_PROVIDER = os.getenv("AUTH_PROVIDER")
 
-logging_engine = create_engine(LOGGING_URL)
+# Cookie key if oauth-proxy
+PROXY_JWT_KEY = os.getenv("PROXY_JWT_KEY")
+WEB_LINK = os.getenv("WEB_LINK")
+
+# Where logs go
+LOGGING_ENDPOINT = os.getenv("LOGGING_ENDPOINT")
+
+# Logging engine
+logging_engine = create_engine(LOGGING_ENDPOINT)
 logging_session = sessionmaker(bind=logging_engine)
 base = declarative_base()
 
+# Prompt engineering
 template = """
 <|begin_of_text|>
 
@@ -297,7 +302,7 @@ def get_decoded_token(access_token, public_key):
         return None
 
 
-def authenticate():
+def keycloak_api():
     """
     authenticate
     """
@@ -327,6 +332,23 @@ def authenticate():
         )
         st.error(f"authenticate: {e}")
         return None
+
+
+def oauth_proxy():
+    """
+    piggyback authentication
+    """
+
+    # Create a cookie
+    cookie = http.cookies.SimpleCookie()
+    cookie[PROXY_JWT_KEY] = "cookie_value"
+
+    session = requests.Session()
+    response = session.get(WEB_LINK)
+    if response.status_code != 200:
+        raise Exception(f"Failed to get response from OAuth Proxy: {response.text}")
+    cookie = session.cookies.get_dict()
+    return cookie[PROXY_JWT_KEY]
 
 
 def get_chat_response(user_query, chat_history):
@@ -364,6 +386,19 @@ def get_chat_response(user_query, chat_history):
 
         return procesesed_response  # Return the cleaned and concise response
 
+    elif LLM_PROVIDER == "ollama":
+        # Initialize Ollama model (use your existing code for Ollama)
+        llm = Ollama(
+            model=OLLAMA_MODEL_NAME, base_url=OLLAMA_MODEL_BASE_URL, verbose=True
+        )
+        chain = prompt | llm | StrOutputParser()
+        return chain.invoke(
+            {
+                "chat_history": chat_history,
+                "user_question": user_query,
+            }
+        )
+
     else:
         raise ValueError(f"Unsupported LLM provider: {LLM_PROVIDER}")
 
@@ -373,6 +408,10 @@ def chat_mode_function():
     chat mode function
     """
     st.title("🦛 Chat Mode")
+    if st.button("Clear Chat History"):
+        st.session_state.chat_history = [
+            AIMessage(content="Hello, I am a helpful assistant. How can I help you?"),
+        ]
 
     # Initialize chat history in session state if not already done
     if "chat_history" not in st.session_state:
@@ -411,14 +450,6 @@ def chat_mode_function():
             input_data=user_query,
             output_data=response,
         )
-
-
-def database_mode_function():
-    """
-    database mode function
-    """
-    st.title("🐘 Database Mode")
-    st.write("Coming soon...")
 
 
 # Feedback dialog function
@@ -485,34 +516,25 @@ def main():
     if "jwt_token" not in st.session_state:
         st.session_state.jwt_token = {}
 
-    if st.session_state.jwt_token == {} and LOGGING == "true":
-        with st.spinner("Authenticating..."):
-            st.session_state.jwt_token = authenticate()
-    elif st.session_state.jwt_token == {} and LOGGING == "false":
+    if st.session_state.jwt_token == {} and AUTH_PROVIDER == "keycloak-api":
+        st.session_state.jwt_token = keycloak_api()
+    elif st.session_state.jwt_token == {} and AUTH_PROVIDER == "oauth-proxy":
+        st.session_state.jwt_token = oauth_proxy()
+    else:
         st.session_state.jwt_token["preferred_username"] = "unknown-user"
 
     if st.session_state.jwt_token:
         st.sidebar.title("🌠 Starchat")
+        st.sidebar.header(f"Hello, {st.session_state.jwt_token['preferred_username']}!")
         chat_mode_function()
-
-        # Main app logic
-        # modes = ["Chat Mode", "Database Mode"]
-        # if "page_selected" not in st.session_state:
-        #     st.session_state.page_selected = modes[0]
-
-        # selected_mode = st.sidebar.radio("Select Mode", modes)
-        # st.session_state.page_selected = selected_mode
-        # if selected_mode == "Chat Mode":
-        #     chat_mode_function()
-        # elif selected_mode == "Database Mode":
-        #     database_mode_function()
-
         with st.sidebar:
-            st.caption("How was your user experience?")
-            if st.button("Submit Feedback"):
+            st.caption("How was your experience using our platform?")
+            if st.button("Share Feedback"):
                 feedback_form()  # Open the feedback form dialog
-            st.caption("What are some tools that could improve your workflows?")
-            if st.button("Submit Suggestion"):
+            st.caption(
+                "Are there any tools or features that could help streamline your workflows?"
+            )
+            if st.button("Share Suggestion"):
                 suggestion_form()  # Open the suggestion form dialog
 
 

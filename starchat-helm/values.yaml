@@ -17,15 +17,21 @@ application:
     CLIENT_SECRET: fxAtVg6qe1eh78V4NurL3SeSNm2v8tUD
     KEYCLOAK_URL: https://keycloak.nebula.sl
     REALM: text2sql
-    REDIRECT_URI: https://application-route-starchat.apps.nebula.sl
+    REDIRECT_URI: https://application-starchat.apps.nebula.sl
+
     OLLAMA_MODEL_NAME: llama3:instruct
     OLLAMA_MODEL_BASE_URL: http://model:11434
+
     VLLM_MODEL_NAME: meta-llama-3-8b-instruct-awq
-    VLLM_MODEL_BASE_URL: http://triton-is-predictor.triton-inference-services.svc.cluster.local:8080/v2/models
     VLLM_FULL_MODEL: http://triton-is-predictor.triton-inference-services.svc.cluster.local:8080/v2/models/meta-llama-3-8b-instruct-awq/generate
+    
     LLM_PROVIDER: vllm
-    LOGGING_URL: postgresql+psycopg2://user:pass@logging:5432/logging
-    LOGGING: False
+    AUTH_PROVIDER: oauth-proxy
+
+    PROXY_JWT_KEY: oauth2-proxy
+    WEB_LINK: https://application-starchat.apps.nebula.sl
+
+    LOGGING_ENDPOINT: postgresql+psycopg2://user:pass@logging:5432/logging
 
 # Container resource settings (shared across applications)
 resources:
@@ -38,6 +44,6 @@ resources:
 
 # Route settings for "application" (OpenShift)
 routeApplication:
-  name: application-route
+  name: application
   tlsTermination: edge
   wildcardPolicy: None
