@@ -38,17 +38,20 @@ spec:
               value: "{{ .Values.application.env.REDIRECT_URI }}"
             - name: OLLAMA_MODEL_NAME
               value: "{{ .Values.application.env.OLLAMA_MODEL_NAME }}"
-            - name: VLLM_MODEL_NAME
-              value: "{{ .Values.application.env.VLLM_MODEL_NAME }}"
             - name: OLLAMA_MODEL_BASE_URL
               value: "{{ .Values.application.env.OLLAMA_MODEL_BASE_URL }}"
-            - name: VLLM_MODEL_BASE_URL
-              value: "{{ .Values.application.env.VLLM_MODEL_BASE_URL }}"
-            - name: LLM_PROVIDER
-              value: "{{ .Values.application.env.LLM_PROVIDER }}"
-            - name: LOGGING_URL
-              value: "{{ .Values.application.env.LOGGING_URL }}"
-            - name: LOGGING
-              value: "{{ .Values.application.env.LOGGING }}"
+            - name: VLLM_MODEL_NAME
+              value: "{{ .Values.application.env.VLLM_MODEL_NAME }}"
             - name: VLLM_FULL_MODEL
               value: "{{ .Values.application.env.VLLM_FULL_MODEL }}"
+            - name: LLM_PROVIDER
+              value: "{{ .Values.application.env.LLM_PROVIDER }}"
+            - name: AUTH_PROVIDER
+              value: "{{ .Values.application.env.AUTH_PROVIDER }}"
+            - name: PROXY_JWT_KEY
+              value: "{{ .Values.application.env.PROXY_JWT_KEY }}"
+            - name: WEB_LINK
+              value: "{{ .Values.application.env.WEB_LINK }}"
+            - name: LOGGING_ENDPOINT
+              value: "{{ .Values.application.env.LOGGING_ENDPOINT }}"
+
