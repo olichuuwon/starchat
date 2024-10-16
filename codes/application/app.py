@@ -339,7 +339,11 @@ def oauth_proxy():
     """
     session = requests.Session()
     cookie = session.cookies.get_dict()
-    cookie[PROXY_JWT_KEY] = {"preferred_username": "cookie_identity"}
+    if PROXY_JWT_KEY not in cookie:
+        print("Awaiting cookie...")
+        cookie[PROXY_JWT_KEY] = {"preferred_username": "cookie_identity"}
+    else:
+        print(cookie[PROXY_JWT_KEY])
     return cookie[PROXY_JWT_KEY]
 
 
@@ -379,7 +383,7 @@ def get_chat_response(user_query, chat_history):
         return procesesed_response  # Return the cleaned and concise response
 
     elif LLM_PROVIDER == "ollama":
-        # Initialize Ollama model (use your existing code for Ollama)
+        # Initialize Ollama model
         llm = Ollama(
             model=OLLAMA_MODEL_NAME, base_url=OLLAMA_MODEL_BASE_URL, verbose=True
         )
