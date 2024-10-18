@@ -29,7 +29,7 @@ spec:
             limits:
               ephemeral-storage: "{{ .Values.logging.storage.limit }}"
           volumeMounts:
-            - mountPath: /var/lib/postgresql/data
+            - mountPath: /bitnami/postgresql
               name: logging-storage
       volumes:
         - name: logging-storage
