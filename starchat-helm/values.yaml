@@ -13,10 +13,10 @@ application:
   ports:
     containerPort: 8501 # Application's container port
   env:
-    CLIENT_ID: flask_client
-    CLIENT_SECRET: fxAtVg6qe1eh78V4NurL3SeSNm2v8tUD
-    KEYCLOAK_URL: https://keycloak.nebula.sl
-    REALM: text2sql
+    CLIENT_ID: oauth2-proxy
+    CLIENT_SECRET: PylbLcV3Ru6tVq4BiSNcTiO7mcULvajP
+    KEYCLOAK_URL: https://keycloak.apps.gemini.sl
+    REALM: gemini
     REDIRECT_URI: https://application-starchat.apps.nebula.sl
 
     OLLAMA_MODEL_NAME: llama3:instruct
@@ -28,7 +28,7 @@ application:
     LLM_PROVIDER: vllm
     AUTH_PROVIDER: oauth-proxy
 
-    PROXY_JWT_KEY: oauth2-proxy
+    PROXY_JWT_KEY: _oauth2_proxy
     WEB_LINK: https://application-starchat.apps.nebula.sl
 
     LOGGING_ENDPOINT: postgresql+psycopg2://user:pass@logging:5432/logging
