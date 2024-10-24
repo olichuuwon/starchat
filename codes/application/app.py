@@ -3,14 +3,11 @@ app.py
 """
 
 import os
-import jwt
-import json
 import uuid
 import warnings
 import requests
 from datetime import datetime, timedelta
 from time import sleep
-
 import streamlit as st
 
 from sqlalchemy import (
@@ -96,7 +93,6 @@ class LogLogin(base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     is_successful = Column(Boolean, nullable=False)
     username = Column(Text, nullable=True)  # NULL allowed
-    token = Column(Text, nullable=True)  # NULL allowed
     error_message = Column(Text, nullable=True)  # NULL allowed
     created_at = Column(
         TIMESTAMP, nullable=False, default=get_gmt_plus_8_time
@@ -138,18 +134,13 @@ class UserSuggestion(base):
     )  # Use datetime
 
 
-def add_log_login(is_successful, username=None, token=None, error_message=None):
+def add_log_login(is_successful, username=None, error_message=None):
     session = logging_session()
 
     try:
-        # Convert token to JSON string if it's a dictionary
-        if isinstance(token, dict):
-            token = json.dumps(token)
-
         new_log = LogLogin(
             is_successful=is_successful,
             username=username,
-            token=token,
             error_message=error_message,
         )
 
@@ -225,125 +216,118 @@ base.metadata.create_all(logging_engine)
 st.set_page_config(page_title="Starchat", page_icon=":speech_balloon:", layout="wide")
 
 
-def get_auth_code():
-    """
-    get auth code
-    """
-    auth_url = (
-        f"{KEYCLOAK_URL}/realms/{REALM}/protocol/openid-connect/auth"
-        f"?client_id={CLIENT_ID}&response_type=code"
-        f"&redirect_uri={REDIRECT_URI}&scope=openid"
-    )
-    if "code" in st.query_params:
-        code = st.query_params["code"]
-        st.query_params.clear()
-        return code
-    else:
-        st.markdown(
-            f'<meta http-equiv="refresh" content="0; url={auth_url}">',
-            unsafe_allow_html=True,
-        )
+# def get_auth_code():
+#     """
+#     get auth code
+#     """
+#     auth_url = (
+#         f"{KEYCLOAK_URL}/realms/{REALM}/protocol/openid-connect/auth"
+#         f"?client_id={CLIENT_ID}&response_type=code"
+#         f"&redirect_uri={REDIRECT_URI}&scope=openid"
+#     )
+#     if "code" in st.query_params:
+#         code = st.query_params["code"]
+#         st.query_params.clear()
+#         return code
+#     else:
+#         st.markdown(
+#             f'<meta http-equiv="refresh" content="0; url={auth_url}">',
+#             unsafe_allow_html=True,
+#         )
 
 
-def get_public_key():
-    """
-    get public key
-    """
-    well_known_url = f"{KEYCLOAK_URL}/realms/{REALM}/.well-known/openid-configuration"
-    response = requests.get(well_known_url, verify=False)
-    # st.write(response, response.json())
-    cert_response = requests.get(response.json().get("jwks_uri"), verify=False)
-    # st.write(cert_response, cert_response.json())
-    cert_keys = cert_response.json().get("keys")
-    # st.write(cert_keys)
-    rsa_key = cert_keys[0]  # will rsa always be the first key?
-    # st.write(rsa_key)
-    return jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(rsa_key))
+# def get_public_key():
+#     """
+#     get public key
+#     """
+#     well_known_url = f"{KEYCLOAK_URL}/realms/{REALM}/.well-known/openid-configuration"
+#     response = requests.get(well_known_url, verify=False)
+#     # st.write(response, response.json())
+#     cert_response = requests.get(response.json().get("jwks_uri"), verify=False)
+#     # st.write(cert_response, cert_response.json())
+#     cert_keys = cert_response.json().get("keys")
+#     # st.write(cert_keys)
+#     rsa_key = cert_keys[0]  # will rsa always be the first key?
+#     # st.write(rsa_key)
+#     return jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(rsa_key))
 
 
-def get_access_token(auth_code):
-    """
-    get access token
-    """
-    try:
+# def get_access_token(auth_code):
+#     """
+#     get access token
+#     """
+#     try:
 
-        token_url = f"{KEYCLOAK_URL}/realms/{REALM}/protocol/openid-connect/token"
-        payload = {
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "grant_type": "authorization_code",
-            "code": auth_code,
-            "redirect_uri": REDIRECT_URI,
-        }
-        response = requests.post(token_url, data=payload, verify=False)
-        access_token = response.json().get("access_token")
-        return access_token
-    except Exception as e:
-        st.error(f"get_access_token: {e}")
-        return None
-
-
-def get_decoded_token(access_token, public_key):
-    """
-    get decoded token
-    """
-    try:
-        decoded_token = jwt.decode(
-            access_token,
-            key=public_key,
-            algorithms=["RS256"],
-            options={"verify_aud": False},
-        )
-        return decoded_token
-    except Exception as e:
-        st.error(f"get_decoded_token: {e}")
-        return None
+#         token_url = f"{KEYCLOAK_URL}/realms/{REALM}/protocol/openid-connect/token"
+#         payload = {
+#             "client_id": CLIENT_ID,
+#             "client_secret": CLIENT_SECRET,
+#             "grant_type": "authorization_code",
+#             "code": auth_code,
+#             "redirect_uri": REDIRECT_URI,
+#         }
+#         response = requests.post(token_url, data=payload, verify=False)
+#         access_token = response.json().get("access_token")
+#         return access_token
+#     except Exception as e:
+#         st.error(f"get_access_token: {e}")
+#         return None
 
 
-def keycloak_api():
-    """
-    authenticate
-    """
-    try:
-        auth_code = get_auth_code()
-        if auth_code is None:
-            return None
-        access_token = get_access_token(auth_code)
-        if access_token is None:
-            return None
-        public_key = get_public_key()
-        if public_key is None:
-            return None
-        decoded_token = get_decoded_token(access_token, public_key)
-        if decoded_token is None:
-            return None
-        add_log_login(
-            True,
-            decoded_token["preferred_username"],
-            token=decoded_token,
-        )
-        return decoded_token
-    except Exception as e:
-        add_log_login(
-            False,
-            error_message=e,
-        )
-        st.error(f"authenticate: {e}")
-        return None
+# def get_decoded_token(access_token, public_key):
+#     """
+#     get decoded token
+#     """
+#     try:
+#         decoded_token = jwt.decode(
+#             access_token,
+#             key=public_key,
+#             algorithms=["RS256"],
+#             options={"verify_aud": False},
+#         )
+#         return decoded_token
+#     except Exception as e:
+#         st.error(f"get_decoded_token: {e}")
+#         return None
+
+
+# def keycloak_api():
+#     """
+#     authenticate
+#     """
+#     try:
+#         auth_code = get_auth_code()
+#         if auth_code is None:
+#             return None
+#         access_token = get_access_token(auth_code)
+#         if access_token is None:
+#             return None
+#         public_key = get_public_key()
+#         if public_key is None:
+#             return None
+#         decoded_token = get_decoded_token(access_token, public_key)
+#         if decoded_token is None:
+#             return None
+#         add_log_login(
+#             True,
+#             decoded_token["preferred_username"],
+#             token=decoded_token,
+#         )
+#         return decoded_token
+#     except Exception as e:
+#         add_log_login(
+#             False,
+#             error_message=e,
+#         )
+#         st.error(f"authenticate: {e}")
+#         return None
 
 
 def oauth_proxy():
     """
-    piggyback authentication
+    Piggyback authentication
     """
-    session = requests.Session()
-    cookie = session.cookies.get_dict()
-    if PROXY_JWT_KEY not in cookie:
-        print("Awaiting cookie...")
-        cookie[PROXY_JWT_KEY] = {"preferred_username": "cookie_identity"}
-    else:
-        print(cookie[PROXY_JWT_KEY])
-    return cookie[PROXY_JWT_KEY]
+    return st.context.headers["X-Auth-Request-Preferred-Username"]
 
 
 def get_chat_response(user_query, chat_history):
@@ -437,7 +421,7 @@ def chat_mode_function():
         # Append the AI's response to the chat history
         st.session_state.chat_history.append(AIMessage(content=response))
         add_llm_input_output(
-            st.session_state.jwt_token["preferred_username"],
+            st.session_state.jwt_token,
             input_data=user_query,
             output_data=response,
         )
@@ -454,9 +438,7 @@ def suggestion_form():
 
     if st.button("Submit"):
         if suggestion:  # Ensure feedback is not empty
-            add_user_suggestion(
-                st.session_state.jwt_token["preferred_username"], suggestion
-            )
+            add_user_suggestion(st.session_state.jwt_token, suggestion)
             st.success("Thank you for your sugguestions!")
         else:
             st.error("Please provide your suggestions before submitting.")
@@ -476,9 +458,7 @@ def feedback_form():
 
     if st.button("Submit"):
         if feedback:  # Ensure feedback is not empty
-            add_user_feedback(
-                st.session_state.jwt_token["preferred_username"], scale, feedback
-            )
+            add_user_feedback(st.session_state.jwt_token, scale, feedback)
             st.success("Thank you for your feedback!")
         else:
             st.error("Please provide your feedback before submitting.")
@@ -504,20 +484,25 @@ def main():
     """
     main
     """
-
     if "jwt_token" not in st.session_state:
         st.session_state.jwt_token = {}
 
-    if st.session_state.jwt_token == {} and AUTH_PROVIDER == "keycloak-api":
-        st.session_state.jwt_token = keycloak_api()
-    elif st.session_state.jwt_token == {} and AUTH_PROVIDER == "oauth-proxy":
-        st.session_state.jwt_token = oauth_proxy()
+    # if st.session_state.jwt_token == {} and AUTH_PROVIDER == "keycloak-api":
+    #     st.session_state.jwt_token = keycloak_api()
+
+    if st.session_state.jwt_token == {} and AUTH_PROVIDER == "oauth-proxy":
+        try:
+            st.session_state.jwt_token = oauth_proxy()
+            add_log_login(True, username=st.session_state.jwt_token)
+        except Exception as e:
+            add_log_login(False, error_message=e)
+
     elif st.session_state.jwt_token == {} and AUTH_PROVIDER == "none":
-        st.session_state.jwt_token["preferred_username"] = "unknown-user"
+        st.session_state.jwt_token = "unknown-user"
 
     if st.session_state.jwt_token:
         st.sidebar.title("🌠 Starchat")
-        st.sidebar.header(f"Hello, {st.session_state.jwt_token['preferred_username']}!")
+        st.sidebar.header(f"Hello, {st.session_state.jwt_token}!")
         chat_mode_function()
         with st.sidebar:
             st.caption("How was your experience using our platform?")
